@@ -8,11 +8,11 @@
 
 (def ^:private persist-channel (channel))
 
-(defn persist-item [item]
-  {:pre [(map? item)]}
+(defn persist-item [ctx]
+  {:pre [(map? ctx)]}
   (enqueue persist-channel
            (fn [] (try
-                    (database/persist-this-item item)
+                    (database/persist-this-item ctx)
                     (catch Exception e (log/print-error-info e))))))
 
 (defn- worker []
@@ -21,8 +21,9 @@
     (recur @(read-channel persist-channel))))
 
 (defn start-workers []
-  "2014-07-01 - for now I'm hard-coding 6 worker threads to work on the persist queue, endlessly reading closures from the queue when something is put in the queue. Ideally, for CPU bound work, the number of threads should be the number of CPUs on the server, plus 1. Any document put on the persist queue is saved to MongoDb."
-  (dotimes [_ 6]
+  "2014-07-01 - TODO -- I/O bound workers should be managed by a proper thread pool but I'm too lazy to implement that right now so I'm just hardcoding 12 workers. Any document put on the persist queue is saved to MongoDb."
+  (dotimes [_ 12]
+    (println " starting up the persist queue workers ")
     (future (worker))))
 
 

@@ -16,7 +16,7 @@
          ]}
   (enqueue cache-channel (fn []
                            (remember/add-to-memory-cache vector-of-locators item)
-                           (. java.lang.Thread sleep 5000)
+                           (. java.lang.Thread sleep 1000)
                            (remember/delete-from-memory-cache vector-of-locators))))
 
 (defn- worker []

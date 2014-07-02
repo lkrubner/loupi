@@ -17,7 +17,8 @@
                  [lamina "0.5.0"]
                  [me.raynes/fs "1.4.4"]
                  [org.clojure/core.incubator "0.1.3"]
-                 [liberator "0.11.0"]]
+                 [liberator "0.11.0"]
+                 [ring/ring-json "0.3.1"]]
   :profiles {:dev {:source-paths ["dev"]
                    :dependencies [[org.clojure/tools.namespace "0.2.4"]
                                   [org.clojure/java.classpath "0.2.0"]]}}

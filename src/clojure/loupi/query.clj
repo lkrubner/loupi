@@ -2,7 +2,8 @@
   (:require
    [loupi.cache-queue :as cq]
    [loupi.remember :as remember]
-   [loupi.database :as database]))
+   [loupi.database :as database]
+   [clojure.pprint :as pp]))
 
 
 ;; 2014-07-01 - this namespace checks the in-memory cache, which we
@@ -25,16 +26,15 @@
 (defn fetch [ctx]
   {:pre [
          (map? ctx)
-         (string? (:database-query-to-call ctx)) 
+         (do (pp/pprint ctx) true)
+         (string? (:database-query-to-call ctx))
+         (map? (:database-where-clause-map ctx))
         ]
    :post [(future? %)]}
   "2014-07-01 - first we check the cache. If we get back nil, then we call 'store', which should put a Future in the cache, and then we check the cache again."
-  (let [vector-key-for-cache-lookup [(get-in ctx [:request :uri]) (:database-query-to-call ctx)]
-        cached-data (remember/get-from-memory-cache vector-key-for-cache-lookup)]
+  (let [cached-data (remember/get-from-memory-cache [(get-in ctx [:request :uri]) (:database-query-to-call ctx)])]
     (if (nil? cached-data)
-      (do
-        (store ctx)
-        (remember/get-from-memory-cache vector-key-for-cache-lookup))
+      (store ctx)
       cached-data)))
 
 

@@ -8,8 +8,7 @@
    [compojure.handler :as handler]
    [compojure.route :as route]
    [me.raynes.fs :as fs]
-   [liberator.core :refer [resource defresource]]
-   [clojure.data.json :as json])
+   [liberator.core :refer [resource defresource]])
   (:use
    [clojure.java.io :only [as-file input-stream output-stream] :as io]
    [ring.util.response]
@@ -24,7 +23,8 @@
    [ring.middleware.session.cookie]
    [ring.middleware.content-type]
    [ring.middleware.not-modified]
-   [ring.adapter.jetty :only [run-jetty]]))
+   [ring.adapter.jetty :only [run-jetty]]
+   [ring.middleware.json]))
 
 
 
@@ -44,24 +44,6 @@
                 (:uri request)
                 (str id))))
 
-(defn body-as-string [ctx]
-  (if-let [body (get-in ctx [:request :body])]
-    (condp instance? body
-      java.lang.String body
-      (slurp (io/reader body)))))
-
-;; For PUT and POST parse the body as json and store in the context
-;; under the given key.
-(defn parse-json [context key]
-  (when (#{:put :post} (get-in context [:request :request-method]))
-    (try
-      (if-let [body (body-as-string context)]
-        (let [data (json/read-str body)]
-          [false {key data}])
-        {:message "No body"})
-      (catch Exception e
-        (.printStackTrace e)
-        {:message (format "IOException: %s" (.getMessage e))}))))
 
 ;; For PUT and POST check if the content type is json.
 (defn check-content-type [ctx content-types]
@@ -77,14 +59,14 @@
   :available-media-types ["application/json"]
   :allowed-methods [:get :post]
   :known-content-type? #(check-content-type % ["application/json"])
-  :malformed? #(parse-json % ::data)
-  :post! (fn [ctx] (controller/list-resource ctx))
+  :malformed? #(controller/parse-json % ::data)
+  :post! (fn [ctx] (controller/list-resource-post ctx))
   :post-redirect? true
   :location #(build-entry-url (get % :request) (get % ::id))
   :handle-ok (fn [ctx]
                (controller/list-resource-handle-ok ctx)))
 
-(defresource entry-resource []
+(defresource entry-resource 
   :allowed-methods [:get :put :delete]
   :known-content-type? #(check-content-type % ["application/json"])
   :exists? (fn [ctx]
@@ -93,21 +75,21 @@
   :available-media-types ["application/json"]
   :handle-ok ::entry
   :delete! (fn [ctx] (controller/entry-resource-delete! ctx))
-  :malformed? #(parse-json % ::data)
+  :malformed? #(controller/parse-json % ::data)
   :can-put-to-missing? false
   :put! (fn [ctx] (controller/entry-resource-put! ctx))
   :new? (fn [ctx] (nil? nil)))
 
 (defroutes app-routes
-  (ANY "/" [] (welcome-message))
-  (GET "/:name-of-collection" [] list-resource)
-  (GET "/:name-of-collection/sort/:field-to-sort-by" [] list-resource)
-  (GET "/:name-of-collection/sort/:field-to-sort-by/:offset-by-how-many/:return-how-many" [] list-resource)
-  (GET "/:name-of-collection/:document-id" [] list-resource)
-  (POST "/:name-of-collection/:document-id" [] entry-resource)
-  (PUT "/:name-of-collection/:document-id" [] entry-resource)
-  (PUT "/:name-of-collection/" [] entry-resource)
-  (DELETE "/:name-of-collection/:document-id" [] entry-resource)  
+  (ANY "/v0.1/" [] (welcome-message))
+  (GET "/v0.1/:name-of-collection" [] list-resource)
+  (GET "/v0.1/:name-of-collection/sort/:field-to-sort-by" [] list-resource)
+  (GET "/v0.1/:name-of-collection/sort/:field-to-sort-by/:offset-by-how-many/:return-how-many" [] list-resource)
+  (GET "/v0.1/:name-of-collection/:document-id" [] list-resource)
+  (POST "/v0.1/:name-of-collection/:document-id" [] entry-resource)
+  (PUT "/v0.1/:name-of-collection/:document-id" [] entry-resource)
+  (PUT "/v0.1/:name-of-collection/" [] entry-resource)
+  (DELETE "/v0.1/:name-of-collection/:document-id" [] entry-resource)  
   (route/resources "/")
   (route/not-found "Page not found. Check the http verb that you used (GET, POST, PUT, DELETE) and make sure you put a collection name in the URL, and possbly also a document ID."))
 
@@ -119,6 +101,7 @@
       (wrap-multipart-params)
       (wrap-nested-params)
       (wrap-params)
+      (wrap-json-params)
       (wrap-content-type)
       (wrap-not-modified)))
 
