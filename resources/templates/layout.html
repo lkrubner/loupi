@@ -1,0 +1,110 @@
+<!DOCTYPE HTML>
+
+<html>
+  <head>
+    <title>Tailor Made Answers admin dashboard</title>
+    <link rel="stylesheet" href="/css/planner.css" media="all" type="text/css" />
+
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
+    <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+
+    <link rel="stylesheet" href="/css/bootstrap.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
+
+    <script src="/js/admin.js" type="text/javascript"></script>   
+    <script src="/js/bootstrap.js" type="text/javascript"></script>   
+
+  </head>
+  <body>
+
+
+
+    <div id="page-for-editing">
+
+
+
+
+      <div id="header">	
+	<div class="inner">
+	  <div class="logo_container">
+	    <a title="TailorMadeAnswers" href="/"><img title="TailorMadeAnswers" alt="TailorMadeAnswers" src="/img/logo.png"><span class="logo-text">TailorMadeAnswers</span></a>
+	  </div>
+	</div>
+      </div>
+
+      
+
+
+
+
+      <div id="content">
+	
+	<h1>Selection Edit Screen: <span>Kid</span></h1>
+
+	<div id="main-image-for-this-item"></div>
+	
+	<div id="mainContent">
+	  
+	  <h3 id="flash-messages"></h3>
+
+	  <form id="tma-edit-form" class="tma-programmer-designer-contract" method="post" action="/admin" enctype="multipart/form-data">	      
+
+	  </form>
+	  
+	  <br />
+	  <h3><a href="#" class="button button_center" onclick="submit_edit_form(); return false;">Update</a></h3>
+
+	</div>
+	
+      </div>
+      
+
+
+
+
+
+
+
+
+      <div id="tma-related-items" class="tma-programmer-designer-contract">
+	<div id="rows-of-choices-for-a-given-type">
+
+	  <h2>Other items, if any, that are related to the above item:</h2>
+	  <ul class="table">
+	    <li>
+	      <ul class="row-of-choices">
+  		<li><h2>Item name</h2></li>
+		<li class="show-item-type">Item type</li>
+		<li class="show-item-subject">Item subject<li>
+  		<li><a title="Edit" href="#" class="button button_center">Edit</a></li>
+  		<li><a title="Delete" href="#" class="button button_center">Delete</a></li>
+	      </ul>				  
+	    </li>
+	  </ul>
+	  
+	</div>
+      </div>
+
+
+
+
+
+
+
+      <div id="tma-bottom-links" class="tma-programmer-designer-contract">
+	<ul id="list-items">
+	  <li><a href="/admin/list/planners">Planners</a></li> 
+	</ul>
+	<ul id="add-new">
+	  <li><a href="/admin/edit/planners">Add new planner</a></li>
+	</ul>
+      </div>
+
+
+
+
+
+    </div>
+  </body>
+</html>

@@ -180,6 +180,62 @@ UserProvider
 UserRole
 
 
+
+## Setup
+
+Database configuration is kept in /resources/config/credentials.edn, which looks like this:
+
+{
+ :host "localhost
+ :db "database"
+ :username "user"
+ :password "1234"
+}
+
+We set .gitignore to keep this file out of the repo, so you'll need to set this file yourself. 
+
+To compile this app, you will need to have the JVM installed on your computer.
+
+Also, be sure you have Leinengen installed on your computer:
+
+http://leiningen.org/
+
+Once you have that installed, you can cd to the directory where this project is, and then, at the command prompt, type:
+
+lein uberjar
+
+That will give you a single binary that combines everything: HTML, CSS, Javascript, the Jetty webserver, the logic. You can the start the app by cd'ing to the directory where the binary is and running: 
+
+java -jar loupi-0.1-standalone.jar 40000
+
+That starts the app on port 40000. You can specify any port you want. If you don't already have an app listening on port 80, you can run this on port 80. If you forget to specify a port, the app defaults to port 34000 (I picked a high number to avoid conflicts with any other software you might be running). 
+
+
+## Our Design Philosophy
+
+I am a big believer in "design by contract" so the important functions have both pre and post assertions. For instance, the database function that paginates results (allows a limit and offset) defines 8 pre assertions, and 1 post assertion. These assertions partly take the place of unit tests, and they clearly tell all future developers what this function is expecting. (The assertions slow the code and so they are only used in development. The compiler accepts a flag that strips out all of the assertions when we are ready to move to production.)
+
+    (defn paginate-results [ctx]
+    {:pre [
+         (map? ctx)
+         (map? (:database-where-clause-map ctx))
+         (string? (get-in ctx [:request :name-of-collection])) 
+         (string? (get-in ctx [:request :field-to-sort-by])) 
+         (string? (get-in ctx [:request :offset-by-how-many])) 
+         (string? (get-in ctx [:request :return-how-many])) 
+         (number? (Integer/parseInt (get-in ctx [:request :offset-by-how-many])))
+         (number? (Integer/parseInt (get-in ctx [:request :return-how-many]))) 
+         ]
+    :post [(= (type %) clojure.lang.LazySeq)]}
+    (with-collection (get-in ctx [:request :name-of-collection])
+    (find (:database-where-clause-map ctx))
+    (sort (array-map  (get-in ctx [:request :field-to-sort-by]) 1))
+    (limit (Integer/parseInt (get-in ctx [:request :return-how-many]))
+    (skip (Integer/parseInt (get-in ctx [:request :offset-by-how-many]))))))
+
+
+
+
 ## License
 
 Copyright LaunchOpen.com © 2014

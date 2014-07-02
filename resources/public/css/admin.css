@@ -1,0 +1,153 @@
+
+.main-display {
+    width: 72%;
+    float: right;
+    margin: 10px;
+    padding: 10px; 
+    clear: right;
+}
+
+
+.item-type {
+  font-weight: bold;
+  font-size: 16px; 
+}
+
+
+
+
+nav {
+    position: absolute;
+    top: 30px;
+    left: 4px; 
+    width: 23%;
+}
+
+nav .tma-programmer-designer-contract {
+    margin: 10px;
+    padding: 10px;
+    border-width: 1px;
+    border-style: solid; 
+}
+
+#tma-link-to-edit-page {
+    border-color: #600;
+    color: #411;
+    background-color: #ffb;
+}
+
+#tma-link-to-show-page {
+    border-color: #600;
+    color: #411;
+    background-color: #ffb;
+}
+
+#tma-bottom-links-list {
+    border-color: #fdf;
+    color: #fff;
+    background-color: #022;
+}
+
+#tma-bottom-links-edit {
+    border-color: #114;
+    color: #222;
+    background-color: #ddf;
+}
+
+#tma-bottom-links-list li,
+#tma-bottom-links-edit li,
+#tma-link-to-show-page li {
+    padding: 0px; 
+    margin: 0 0 10px 0;
+}
+
+
+
+
+a.render-field-hyperlink-value {
+    display: block;
+}
+
+ul {
+    list-style-type: none;
+}
+
+
+a.link-for-pagination {
+  display: block;
+  height: 14px;
+  width: 36px; 
+  padding: 2px; 
+  border-width: 1px;
+  border-style: solid;
+  border-color: #ddd;
+  float: left; 
+}
+
+
+.tma-paginated-list {
+    display: block;
+    margin: 0 0 30px 0;
+}
+
+.tma-paginated-list span {
+    display: block; 
+}
+
+
+/*
+.in-a-list-user-item-name {
+  background-color: #080;
+  color: #fff;
+  padding: 4px;
+}
+
+.in-a-list-created-at {
+  background-color: #ee9;
+  color: #077;
+  padding: 4px;
+}
+
+.in-a-list-community-item-name {
+  background-color: #cdf;
+  color: #060;
+  padding: 4px;
+}
+
+.in-a-list-subject {
+  background-color: #fee;
+  color: #033;
+  padding: 4px;
+  font-weight: bold;
+}
+
+.in-a-list-item-type {
+  background-color: #eef;
+  color: #440;
+  padding: 4px;
+  font-weight: bold;
+}
+
+.in-a-list-prize-amount {
+  background-color: #008;
+  color: #fff;
+  padding: 4px;
+  font-weight: bold;
+}
+
+
+*/
+
+
+.link-for-item-name {
+    display: block;
+}
+
+
+
+
+
+span.user-email {
+    padding: 2px; 
+    background-color: #bfa;
+}
