@@ -211,6 +211,28 @@ java -jar loupi-0.1-standalone.jar 40000
 That starts the app on port 40000. You can specify any port you want. If you don't already have an app listening on port 80, you can run this on port 80. If you forget to specify a port, the app defaults to port 34000 (I picked a high number to avoid conflicts with any other software you might be running). 
 
 
+## Testing with cURL
+
+On my own machine, I start the app like this:
+
+java -jar loupi-0.1-standalone.jar
+
+Now it is running on port 34000
+
+If I do this I can add a document to the Mongo database, the "User" collection: 
+
+curl -X PUT l -d '{ "firstname":"lawrence", "lastname":"krubner" }'  -H "Content-Type:application/json" http://localhost:34000/v0.1/User/
+
+If I do this I will see 10 documents listed:
+
+curl http://localhost:34000/v0.1/Assignments
+
+If I then take one of the "id"s that I see, and use in the URL, I can delete a document like this:
+
+curl -X DELETE http://localhost:34000/v0.1/Assignments/53a484cd3d698858278c3baa
+
+So now I have deleted the 53a484cd3d698858278c3baa document from the Assignments collection.
+
 ## Our Design Philosophy
 
 I am a big believer in "design by contract" so the important functions have both pre and post assertions. For instance, the database function that paginates results (allows a limit and offset) defines 8 pre assertions, and 1 post assertion. These assertions partly take the place of unit tests, and they clearly tell all future developers what this function is expecting. (The assertions slow the code and so they are only used in development. The compiler accepts a flag that strips out all of the assertions when we are ready to move to production.)

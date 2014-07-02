@@ -22,19 +22,21 @@
 
 
 ;; TODO -- upgrading to Monger 2.0, which has new API for auth. I should look it up someday.
-;; (defn establish-database-connection []
-;;   (let [credentials (read-string (slurp (clojure.java.io/resource "config/credentials.edn")))                    
-;;         uri (str "mongodb://" (:username credentials) ":" (:password credentials) "@" (:host credentials) "/" (:db credentials))
-;;         { :keys [conn database]} (mg/connect-via-uri uri)]
-;;     (println uri)
-;;     (def db database)))
-
-
 (defn establish-database-connection []
-  (let [credentials (read-string (slurp (clojure.java.io/resource "config/credentials.edn")))
-        conn (mg/connect)]
+  (let [credentials (read-string (slurp (clojure.java.io/resource "config/credentials.edn")))                    
+;;        uri (str "mongodb://" (:username credentials) ":" (:password credentials) "@" (:host credentials) "/" (:db credentials))
+         uri (str "mongodb://" (:host credentials) "/" (:db credentials))
+        { :keys [conn database]} (mg/connect-via-uri uri)]
     (pp/pprint conn)
-  (def db (mg/get-db conn (:db credentials)))))
+    (println uri)
+    (def db database)))
+
+
+;; (defn establish-database-connection []
+;;   (let [credentials (read-string (slurp (clojure.java.io/resource "config/credentials.edn")))
+;;         conn (mg/connect)]
+;;     (pp/pprint conn)
+;;   (def db (mg/get-db conn (:db credentials)))))
 
 (defn remove-this-item [ctx]
   {:pre [
