@@ -2,7 +2,7 @@
 
 <html>
   <head>
-    <title>Tailor Made Answers admin dashboard</title>
+    <title>loupi -- Launch Open User Persistence Integration</title>
     <link rel="stylesheet" href="/css/planner.css" media="all" type="text/css" />
 
     <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
@@ -17,94 +17,476 @@
 
   </head>
   <body>
-
-
-
     <div id="page-for-editing">
-
-
-
 
       <div id="header">	
 	<div class="inner">
 	  <div class="logo_container">
-	    <a title="TailorMadeAnswers" href="/"><img title="TailorMadeAnswers" alt="TailorMadeAnswers" src="/img/logo.png"><span class="logo-text">TailorMadeAnswers</span></a>
+	    <a title="LaunchOpen" href="/"><img title="LaunchOpen" alt="LaunchOpen" src="/img/logo.png"></a>
 	  </div>
 	</div>
       </div>
 
-      
 
-
-
+      <div id="api-results">This div has an id of 'api-results' and should be used as the target of experimental GET requests.</div>
 
       <div id="content">
 	
-	<h1>Selection Edit Screen: <span>Kid</span></h1>
+	<h1>Javascript API Explorer</h1>
 
-	<div id="main-image-for-this-item"></div>
+	<p>Use a browser that will show you what's written to cosole.log(), such as FireFox.</p>
 	
-	<div id="mainContent">
-	  
-	  <h3 id="flash-messages"></h3>
+	<p>You can use the form below to test the API (without having to worry about issues like same-origin policies). Type in any Javascript you want and hit the button, your Javascript will be sent to eval(). Examples below.</p>
 
-	  <form id="tma-edit-form" class="tma-programmer-designer-contract" method="post" action="/admin" enctype="multipart/form-data">	      
+	<form id="tma-edit-form" method="get" action="#">	      
+	  <textarea id="javascript-api-explorer"></textarea>
 
-	  </form>
+	  <br>
+	  <input type="submit" onclick="evaluate_javascript_in_api_explorer(); return false;">
+	</form>
+
+	<div id="explanations">
 	  
-	  <br />
-	  <h3><a href="#" class="button button_center" onclick="submit_edit_form(); return false;">Update</a></h3>
+	  <p>This software expects routes that look like this:</p>
+
+	  <p>"/v0.1/" </p>
+
+	  <p>  GET "/v0.1/:name-of-collection" </p>
+
+	  <p>  GET "/v0.1/:name-of-collection/sort/:field-to-sort-by" </p>
+
+	  <p>  GET "/v0.1/:name-of-collection/sort/:field-to-sort-by/:offset-by-how-many/:return-how-many" </p>
+
+	  <p>  GET  "/v0.1/:name-of-collection/match-field/:match-field/match-value/:match-value" </p>
+
+	  <p> GET "/v0.1/:name-of-collection/sort/:field-to-sort-by/:offset-by-how-many/:return-how-many/match-field/:match-field/match-value/:match-value" </p>
+
+	  <p>  GET "/v0.1/:name-of-collection/:document-id" </p>
+
+	  <p>  POST "/v0.1/:name-of-collection/:document-id" </p>
+
+	  <p>  PUT "/v0.1/:name-of-collection/:document-id" </p>
+
+	  <p>  PUT "/v0.1/:name-of-collection/" </p>
+
+	  <p>  DELETE "/v0.1/:name-of-collection/:document-id" </p>
+
+	  <p><a href="https://github.com/HJOPEN/OperationOpen/wiki/MongoDB-Schema-of-July,-2014">Our schema is detailed at Github</a>.</p>
+
+	  <p><b>You can learn more about the API <a href="https://github.com/lkrubner/loupi">by reading the README</a>.</b></p>
+
+	  <p>For now the API does not enforce a schema, so you can create new collections on the fly. Truly, you can stuff anything you like in the database, and then get it back out later.</p>
+
+	  <h2>jQuery Examples: </h2>
+
+	  <p>Tyler needed to create the following JSON object, so here is the code to PUT the object in the database: 
+
+	  <pre>
+	    $.ajax({
+            type: "PUT",
+            contentType: "application/json",
+            headers: {
+            'X-HTTP-Method-Override': 'PUT'
+            },
+            url: "http://das.launchopen.com/v0.1/Awards",
+	    data: 
+                  JSON.stringify({
+                             "decorateImages": [
+                                 {
+                                     "decImage": "/assets/open/images/ar/badge-theater-small.png"
+                 
+                                 },
+                                 {
+                                     "decImage": "/assets/open/images/ar/badge-music-small.png"
+                                 }
+                             ],
+                             "className": "MTH200",
+                             "studentInfo": [
+                                 {
+                                     "studentName": "Mark Student",
+                                     "earnedPoints": 1575
+                 
+                                 },
+                                 {
+                                     "studentName": "Tori Student",
+                                     "earnedPoints": 2235
+                                 },
+                                 {
+                                     "studentName": "Suzie Student",
+                                     "earnedPoints": 1250
+                                 }
+                             ]
+                         }),
+            complete: function (data) { alert("Done. Use FireFox for testing and look at the console.log to see the results.");  },
+            success: function (data) { console.log(data);  },
+            error:  function (data) { console.log(data); },
+            dataType: "json"
+            });
+	  </pre>
+
+	  <p>When I run that, I see a 201 status "Created" in FireFox's console.log. And then when I look in MongoDB, I see this new document: 
+
+	    <pre>
+                 {
+                 	"_id" : ObjectId("53bcc363e4b07b9b2edc8bfd"),
+                 	"updated-at" : ISODate("2014-07-09T04:21:55.275Z"),
+                 	"created-at" : ISODate("2014-07-09T04:21:55.275Z"),
+                 	"decorateImages" : [
+                 		{
+                 			"decImage" : "/assets/open/images/ar/badge-theater-small.png"
+                 		},
+                 		{
+                 			"decImage" : "/assets/open/images/ar/badge-music-small.png"
+                 		}
+                 	],
+                 	"className" : "MTH200",
+                 	"studentInfo" : [
+                 		{
+                 			"studentName" : "Mark Student",
+                 			"earnedPoints" : 1575
+                 		},
+                 		{
+                 			"studentName" : "Tori Student",
+                 			"earnedPoints" : 2235
+                 		},
+                 		{
+                 			"studentName" : "Suzie Student",
+                 			"earnedPoints" : 1250
+                 		}
+                 	]
+                 }
+                 </pre>
+
+	    <p>Now, if I want to get that document back, I do this: </p>
+
+	    <pre>
+	    $.ajax({
+            type: "GET",
+            contentType: "application/json",
+            url: "http://das.launchopen.com/v0.1/Awards/53bcc363e4b07b9b2edc8bfd",
+	    data: "",
+            complete: function (data) {
+              var rawResponse = data.responseText;
+              var cleanedData = rawResponse.replace(/\\/g, '');
+              $("#api-results").text(cleanedData);
+  	      alert("Done. Use FireFox for testing and look at the console.log to see the results.");  
+	    },
+            success: function (data) { console.log(data);  },
+            error:  function (data) { console.log(data); },
+            dataType: "json"
+            });
+	    </pre>
+	    
+	    <p>Now I see the document that I just put in the database a few moments ago. However, the data is only a string, it is not a Javascript object. To convert the string to a JSON object, try:</p>
+
+	    <pre>
+	      jQuery.parseJSON( jsonString );
+	    </pre>
+
+	    <p>What do we do when we want to update this data? Try this: </p>
+
+	  <pre>
+	    $.ajax({
+            type: "POST",
+            contentType: "application/json",
+            headers: {
+            'X-HTTP-Method-Override': 'POST'
+            },
+            url: "http://das.launchopen.com/v0.1/Awards/53bcc363e4b07b9b2edc8bfd",
+	    data: 
+                  JSON.stringify({
+                             "decorateImages": [
+                                 {
+                                     "decImage": "/assets/open/images/ar/badge-theater-small.png"
+                 
+                                 },
+                                 {
+                                     "decImage": "/assets/open/images/ar/badge-music-small.png"
+                                 }
+                             ],
+                             "className": "MTH200",
+                             "studentInfo": [
+                                 {
+                                     "studentName": "Mark Student",
+                                     "earnedPoints": 1575
+                 
+                                 },
+                                 {
+                                     "studentName": "Arianna Student",
+                                     "earnedPoints": 1744
+                                 },
+                                 {
+                                     "studentName": "Shorey Student",
+                                     "earnedPoints": 1115
+                                 },
+                                 {
+                                     "studentName": "Tori Student",
+                                     "earnedPoints": 2235
+                                 },
+                                 {
+                                     "studentName": "Suzie Student",
+                                     "earnedPoints": 1250
+                                 }
+                             ]
+                         }),
+            complete: function (data) { alert("Done. Use FireFox for testing and look at the console.log to see the results.");  },
+            success: function (data) { console.log(data);  },
+            error:  function (data) { console.log(data); },
+            dataType: "json"
+            });
+	  </pre>
+
+	  <p>Now when I look in MongoDB I see:</p>
+
+	  <pre>
+                 {
+                 	"_id" : ObjectId("53bcc363e4b07b9b2edc8bfd"),
+                 	"studentInfo" : [
+                 		{
+                 			"studentName" : "Mark Student",
+                 			"earnedPoints" : 1575
+                 		},
+                 		{
+                 			"studentName" : "Arianna Student",
+                 			"earnedPoints" : 1744
+                 		},
+                 		{
+                 			"studentName" : "Shorey Student",
+                 			"earnedPoints" : 1115
+                 		},
+                 		{
+                 			"studentName" : "Tori Student",
+                 			"earnedPoints" : 2235
+                 		},
+                 		{
+                 			"studentName" : "Suzie Student",
+                 			"earnedPoints" : 1250
+                 		}
+                 	],
+                 	"className" : "MTH200",
+                 	"decorateImages" : [
+                 		{
+                 			"decImage" : "/assets/open/images/ar/badge-theater-small.png"
+                 		},
+                 		{
+                 			"decImage" : "/assets/open/images/ar/badge-music-small.png"
+                 		}
+                 	],
+                 	"updated-at" : ISODate("2014-07-09T06:23:22.629Z"),
+                 	"created-at" : ISODate("2014-07-09T06:23:22.629Z")
+                 }
+	  </pre>
+
+	  <p>One thing I have not emphasized is the difference between PUT and POST updates. With POST you can do partial updates of a document. Suppose, in the example above, we only wanted to change the className. We could do this:</p>
+
+	  <pre>
+	    $.ajax({
+            type: "POST",
+            contentType: "application/json",
+            headers: {
+            'X-HTTP-Method-Override': 'POST'
+            },
+            url: "http://das.launchopen.com/v0.1/Awards/53bcc363e4b07b9b2edc8bfd",
+	    data: 
+                  JSON.stringify({
+                             "className": "HISTORY101"
+                         }),
+            complete: function (data) { alert("Done. Use FireFox for testing and look at the console.log to see the results.");  },
+            success: function (data) { console.log(data);  },
+            error:  function (data) { console.log(data); },
+            dataType: "json"
+            });
+	  </pre>
+
+	  <p>Now when I look in the database, I see the same document as before, and only the className has changed:</p>
+
+	  <pre>
+                 {
+                 	"_id" : ObjectId("53bcc363e4b07b9b2edc8bfd"),
+                 	"studentInfo" : [
+                 		{
+                 			"studentName" : "Mark Student",
+                 			"earnedPoints" : 1575
+                 		},
+                 		{
+                 			"studentName" : "Arianna Student",
+                 			"earnedPoints" : 1744
+                 		},
+                 		{
+                 			"studentName" : "Shorey Student",
+                 			"earnedPoints" : 1115
+                 		},
+                 		{
+                 			"studentName" : "Tori Student",
+                 			"earnedPoints" : 2235
+                 		},
+                 		{
+                 			"studentName" : "Suzie Student",
+                 			"earnedPoints" : 1250
+                 		}
+                 	],
+                 	"className" : "HISTORY101",
+                 	"decorateImages" : [
+                 		{
+                 			"decImage" : "/assets/open/images/ar/badge-theater-small.png"
+                 		},
+                 		{
+                 			"decImage" : "/assets/open/images/ar/badge-music-small.png"
+                 		}
+                 	],
+                 	"updated-at" : ISODate("2014-07-09T06:28:10.668Z"),
+                 	"created-at" : ISODate("2014-07-09T06:28:10.668Z")
+                 }
+	  </pre>
+
+	  <p>But suppose I wanted to do a destructive update, which erased everything in the document save the part I am updating right now? For that you would use PUT (I want to emphasize that PUT can be used for creation, or for destructive updates). If we do exactly the same as before, but change the HTTP verb from POST to PUT, we get very different results:</p>
+
+	  <pre>
+	    $.ajax({
+            type: "PUT",
+            contentType: "application/json",
+            headers: {
+            'X-HTTP-Method-Override': 'PUT'
+            },
+            url: "http://das.launchopen.com/v0.1/Awards/53bcc363e4b07b9b2edc8bfd",
+	    data: 
+                  JSON.stringify({
+                             "className": "HISTORY101"
+                         }),
+            complete: function (data) { alert("Done. Use FireFox for testing and look at the console.log to see the results.");  },
+            success: function (data) { console.log(data);  },
+            error:  function (data) { console.log(data); },
+            dataType: "json"
+            });
+	  </pre>
+
+	  <p>Using PUT means we have done a destructive update. Everything in the document was erased except for the 1 field we just updated. When I look in MongoDB, this is what I now see:  </p>
+
+          <pre>                 
+                 {
+                 	"_id" : ObjectId("53bcc363e4b07b9b2edc8bfd"),
+                 	"updated-at" : ISODate("2014-07-09T06:53:51.534Z"),
+                 	"created-at" : ISODate("2014-07-09T06:53:51.534Z"),
+                 	"className" : "HISTORY101"
+                 }  
+          </pre>
+
+	  <p>Keep in mind: POST is for partial updates, and PUT is for destructive updates (PUT is also for creating new documents).</p>
+
+	  <p>Now, let's delete this document:</p>
+
+	  <pre>
+	    $.ajax({
+            type: "DELETE",
+            contentType: "application/json",
+            headers: {
+            'X-HTTP-Method-Override': 'DELETE'
+            },
+            url: "http://das.launchopen.com/v0.1/Awards/53bcc363e4b07b9b2edc8bfd",
+	    data: "",
+            complete: function (data) { alert("Done. Use FireFox for testing and look at the console.log to see the results.");  },
+            success: function (data) { console.log(data);  },
+            error:  function (data) { console.log(data); },
+            dataType: "json"
+            });
+	  </pre>
+
+	  <p>Now the document is gone.</p>
+
+	  <p>For now, while we are in prototype, you have complete power to put whatever you want in this database, and also to delete it.</p>
+
+	  <p>If you make a simple GET request you get 10 items back by default:</p>
+
+	    <pre>
+	    $.ajax({
+            type: "GET",
+            contentType: "application/json",
+            url: "http://das.launchopen.com/v0.1/UserProvider",
+	    data: "",
+            complete: function (data) {
+              var rawResponse = data.responseText;
+              var cleanedData = rawResponse.replace(/\\/g, '');
+              $("#api-results").text(cleanedData);
+  	      alert("Done. Use FireFox for testing and look at the console.log to see the results.");  
+	    },
+            success: function (data) { console.log(data);  },
+            error:  function (data) { console.log(data); },
+            dataType: "json"
+            });
+	    </pre>
+	    
+	    <p>We can also match against a field, seeking a particular value. So for instance, to get all records where "gender" is "Female":</p>
+
+	    <pre>
+	    $.ajax({
+            type: "GET",
+            contentType: "application/json",
+            url: "http://das.launchopen.com/v0.1/User/match-field/gender/match-value/Female",
+	    data: "",
+            complete: function (data) {
+              var rawResponse = data.responseText;
+              var cleanedData = rawResponse.replace(/\\/g, '');
+              $("#api-results").text(cleanedData);
+  	      alert("Done. Use FireFox for testing and look at the console.log to see the results.");  
+	    },
+            success: function (data) { console.log(data);  },
+            error:  function (data) { console.log(data); },
+            dataType: "json"
+            });
+	    </pre>
+	    
+	    <p>This app is not meant to be a full-featured search app, for that you should query Evan's search app. But this app does let you match any field you want.</p>
+
+	    <p>We might want to sort items, say for instance by name, and we might want to paginate our way through the data. Suppor we want to skip the first 300 users, and then get the next 5 users, listing them in alphabetical order?</p>
+
+	    <pre>
+	    $.ajax({
+            type: "GET",
+            contentType: "application/json",
+            url: "http://das.launchopen.com/v0.1/User/sort/last_name/300/5",
+	    data: "",
+            complete: function (data) {
+              var rawResponse = data.responseText;
+              var cleanedData = rawResponse.replace(/\\/g, '');
+              $("#api-results").text(cleanedData);
+  	      alert("Done. Use FireFox for testing and look at the console.log to see the results.");  
+	    },
+            success: function (data) { console.log(data);  },
+            error:  function (data) { console.log(data); },
+            dataType: "json"
+            });
+	    </pre>
+	    
+	    <p>And finally, what if we want to do something like the above (skip the first 20 users, and then get the next 10 users, listing them in alphabetical order) but only see females?</p>
+
+	    <pre>
+	    $.ajax({
+            type: "GET",
+            contentType: "application/json",
+            url: "http://das.launchopen.com/v0.1/User/sort/last_name/20/10/match-field/gender/match-value/Female",
+	    data: "",
+            complete: function (data) {
+              var rawResponse = data.responseText;
+              var cleanedData = rawResponse.replace(/\\/g, '');
+              $("#api-results").text(cleanedData);
+  	      alert("Done. Use FireFox for testing and look at the console.log to see the results.");  
+	    },
+            success: function (data) { console.log(data);  },
+            error:  function (data) { console.log(data); },
+            dataType: "json"
+            });
+	    </pre>
+
+	  <h4>Troubleshooting</h4>
+
+	  <p>If you get a 415 Unsupported Media Type response then make sure you set contentType: "application/json"</p>
+
+	  <p>If you get a 404 but the URL looks correct to you, then check the verb: GET, PUT, POST, DELETE. The routes are specific to a verb and not all routes support GET. Also, avoid trailing slashes at the end of the URL.</p>
 
 	</div>
 	
+
+
       </div>
-      
-
-
-
-
-
-
-
-
-      <div id="tma-related-items" class="tma-programmer-designer-contract">
-	<div id="rows-of-choices-for-a-given-type">
-
-	  <h2>Other items, if any, that are related to the above item:</h2>
-	  <ul class="table">
-	    <li>
-	      <ul class="row-of-choices">
-  		<li><h2>Item name</h2></li>
-		<li class="show-item-type">Item type</li>
-		<li class="show-item-subject">Item subject<li>
-  		<li><a title="Edit" href="#" class="button button_center">Edit</a></li>
-  		<li><a title="Delete" href="#" class="button button_center">Delete</a></li>
-	      </ul>				  
-	    </li>
-	  </ul>
-	  
-	</div>
-      </div>
-
-
-
-
-
-
-
-      <div id="tma-bottom-links" class="tma-programmer-designer-contract">
-	<ul id="list-items">
-	  <li><a href="/admin/list/planners">Planners</a></li> 
-	</ul>
-	<ul id="add-new">
-	  <li><a href="/admin/edit/planners">Add new planner</a></li>
-	</ul>
-      </div>
-
-
-
-
-
-    </div>
   </body>
 </html>

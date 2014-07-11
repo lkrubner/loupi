@@ -35,6 +35,8 @@
   (subs string-with-comma-at-end 0 (- (count string-with-comma-at-end) 1)))
 
 (defn prepare-for-json [lazyseq-from-database]
+  {:pre [(seq? lazyseq-from-database)]
+   :post [(vector? %)]}
   "2014-07-02 - we get a lazyseq back from the database, that is stored in a Future. When we deref the Future, we need to turn the lazyseq into a string before we can give it to json/read-string"
   (reduce
    (fn [vector-of-strings next-document]
@@ -62,8 +64,12 @@
 ;;         {:message (format "IOException: %s" (.getMessage e))}))))
 
 (defn paginate-results [ctx]
+  {:pre [(map? ctx)]
+   :post [(future? %)]}
   "2014-07-02 -- we want to enforce a strict contract on the function database/paginate-results, but we don't want our frontenders to have to strictly send us all the necessary parameters on every Ajax call, so we set useful defaults here"
-  (let [ctx (assoc ctx :database-query-to-call "paginate-results")
+  (let [ctx (if (:database-query-to-call ctx)
+              ctx
+              (assoc ctx :database-query-to-call "paginate-results"))
         ctx (if (:database-where-clause-map ctx)
               ctx
               (assoc ctx :database-where-clause-map {}))
@@ -73,6 +79,7 @@
         ctx (if (get-in ctx [:request :params :offset-by-how-many])
               ctx
               (assoc-in ctx [:request :params :offset-by-how-many] "0"))
+
         ctx (if (get-in ctx [:request :params :return-how-many])
               ctx
               (assoc-in ctx [:request :params :return-how-many] "10"))]
@@ -83,33 +90,44 @@
         future-data-return (query/fetch ctx)]
     (json/write-str (prepare-for-json @future-data-return))))
 
-(defn list-resource-post [ctx]
-  (pp/pprint ctx)
+(defn list-resource-post! [ctx]
   (pq/persist-item ctx))
+
+(defn set-database-query [ctx]
+  (let [field-to-sort-by (get-in ctx [:request :params :field-to-sort-by])
+        match-field (get-in ctx [:request :params :match-field])
+        match-value (get-in ctx [:request :params :match-value])
+        ctx (if (and (nil? field-to-sort-by) match-field)
+              (assoc ctx :database-query-to-call "find-these-items")
+              ctx)
+        ctx (if (and (nil? field-to-sort-by) match-field)
+              (assoc ctx :database-where-clause-map { (keyword match-field) match-value })
+              ctx)]
+    ctx))
 
 (defn list-resource-handle-ok [ctx]
   (println "in list-resource-handle-ok")
   (pp/pprint ctx)
-  (let [ctx (assoc ctx :database-where-clause-map {})
-        ctx (assoc ctx :database-query-to-call "find-these-items")
+  (let [ctx (set-database-query ctx)        
         future-data-return (paginate-results ctx)]
-    (json/write-str  (prepare-for-json @future-data-return))))
+    (json/write-str (prepare-for-json @future-data-return))))
+
+(defn entry-resource-handle-ok [ctx]
+  (let [ctx (assoc ctx :database-where-clause-map {})
+        ctx (assoc ctx :database-query-to-call "find-this-item")
+        future-data-return (paginate-results ctx)]
+    (json/write-str (prepare-for-json @future-data-return))))
 
 (defn entry-resource-put! [ctx]
-  (println "in entry-resource-put!")
+  "2014-07-08 - PUT leads us to create a new document. If the :document-id matches the :_id of an existing document, that other document needs to be removed and wholly over-written by this new document."
+  (println " in entry-resourse-put!")
   (pp/pprint ctx)
-  (pq/persist-item ctx))
+  (pq/create-item ctx))
 
 (defn entry-resource-existed? [ctx]
-  (println " in entry-resource-existed?")
-  (pp/pprint ctx)
-  (if (get-in ctx [:request :params :_id])
-    true
-    false))
+  false)
 
 (defn entry-resource-delete! [ctx]
-  (println " in entry-resource-delete")
-  (pp/pprint ctx)
   (rq/remove-item ctx))
 
 

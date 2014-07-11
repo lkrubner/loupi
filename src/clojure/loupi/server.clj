@@ -8,7 +8,10 @@
    [compojure.handler :as handler]
    [compojure.route :as route]
    [me.raynes.fs :as fs]
-   [liberator.core :refer [resource defresource]])
+   [net.cgrand.enlive-html :as enlive]
+   [liberator.core :refer [resource defresource]]
+   [clojure.pprint :as pp]
+   [clojure.string :as st])
   (:use
    [clojure.java.io :only [as-file input-stream output-stream] :as io]
    [ring.util.response]
@@ -28,10 +31,12 @@
 
 
 
-(defn welcome-message []
+
+(defn example []
   (assoc
-      (ring.util.response/response "Hi. This is LaunchOpen. But you must be looking for a different URL?")
-    :headers {"Content-Type" "text/plain"}))
+      (ring.util.response/response
+       (apply str (enlive/emit* (enlive/html-resource "templates/layout.html"))))
+    :headers {"Content-Type" "text/html"}))
 
 ;; a helper to create a absolute url for the entry with the given id
 (defn build-entry-url [request id]
@@ -46,22 +51,21 @@
 
 
 ;; For PUT and POST check if the content type is json.
-(defn check-content-type [ctx content-types]
+(defn check-content-type [ctx content-types-we-allow]
   (if (#{:put :post} (get-in ctx [:request :request-method]))
-    (or
-     (some #{(get-in ctx [:request :headers "content-type"])}
-           content-types)
-     [false {:message "Unsupported Content-Type"}])
+    (let [vector-of-headers-sent-by-client (st/split (get-in ctx [:request :headers "content-type"]) #";")]
+      (or
+       (not (every? nil? (map #(some #{%} content-types-we-allow) vector-of-headers-sent-by-client)))
+       [false {:message "Unsupported Content-Type"}]))
     true))
 
-;; create and list entries
 (defresource list-resource
   :available-media-types ["application/json"]
   :allowed-methods [:get :post]
   :known-content-type? #(check-content-type % ["application/json"])
   :malformed? #(controller/parse-json % ::data)
-  :post! (fn [ctx] (controller/list-resource-post ctx))
-  :post-redirect? true
+  :post! (fn [ctx] (controller/list-resource-post! ctx))
+  :post-redirect? false
   :location #(build-entry-url (get % :request) (get % ::id))
   :handle-ok (fn [ctx]
                (controller/list-resource-handle-ok ctx)))
@@ -70,25 +74,30 @@
   :allowed-methods [:get :put :delete]
   :known-content-type? #(check-content-type % ["application/json"])
   :exists? (fn [ctx]
-             {::entry " if this shows up then something must exist"})
+             true)
   :existed? (fn [ctx] (controller/entry-resource-existed? ctx))
   :available-media-types ["application/json"]
-  :handle-ok ::entry
+  :handle-ok (fn [ctx]
+               (controller/entry-resource-handle-ok ctx))
   :delete! (fn [ctx] (controller/entry-resource-delete! ctx))
   :malformed? #(controller/parse-json % ::data)
-  :can-put-to-missing? false
+  :can-put-to-missing? true
+  :can-post-to-missing? true
   :put! (fn [ctx] (controller/entry-resource-put! ctx))
   :new? (fn [ctx] (nil? nil)))
 
 (defroutes app-routes
-  (ANY "/v0.1/" [] (welcome-message))
+  (ANY "/" [] (example))
+  (ANY "/v0.1/" [] (example))
   (GET "/v0.1/:name-of-collection" [] list-resource)
   (GET "/v0.1/:name-of-collection/sort/:field-to-sort-by" [] list-resource)
   (GET "/v0.1/:name-of-collection/sort/:field-to-sort-by/:offset-by-how-many/:return-how-many" [] list-resource)
-  (GET "/v0.1/:name-of-collection/:document-id" [] list-resource)
-  (POST "/v0.1/:name-of-collection/:document-id" [] entry-resource)
+  (GET "/v0.1/:name-of-collection/match-field/:match-field/match-value/:match-value" [] list-resource)
+  (GET "/v0.1/:name-of-collection/sort/:field-to-sort-by/:offset-by-how-many/:return-how-many/match-field/:match-field/match-value/:match-value" [] list-resource)
+  (GET "/v0.1/:name-of-collection/:document-id" [] entry-resource)
+  (POST "/v0.1/:name-of-collection/:document-id" [] list-resource)
+  (PUT "/v0.1/:name-of-collection" [] entry-resource)
   (PUT "/v0.1/:name-of-collection/:document-id" [] entry-resource)
-  (PUT "/v0.1/:name-of-collection/" [] entry-resource)
   (DELETE "/v0.1/:name-of-collection/:document-id" [] entry-resource)  
   (route/resources "/")
   (route/not-found "Page not found. Check the http verb that you used (GET, POST, PUT, DELETE) and make sure you put a collection name in the URL, and possbly also a document ID."))

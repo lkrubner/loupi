@@ -15,6 +15,13 @@
                     (database/persist-this-item ctx)
                     (catch Exception e (log/print-error-info e))))))
 
+(defn create-item [ctx]
+  {:pre [(map? ctx)]}
+  (enqueue persist-channel
+           (fn [] (try
+                    (database/create-this-item ctx)
+                    (catch Exception e (log/print-error-info e))))))
+
 (defn- worker []
   (loop [closure-with-item-inside @(read-channel persist-channel)]
     (closure-with-item-inside)
