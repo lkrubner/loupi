@@ -30,6 +30,19 @@
    [ring.middleware.json]))
 
 
+(defn preflight [request]
+  "2014-07-13 - this is meant to enable CORS so our frontenders can do cross-browser requests. The browser should do a 'preflight' OPTIONS request to get permission to do other requests."
+  (print " IN PREFLIGHT ")
+  (pp/pprint request)
+  (assoc
+      (ring.util.response/response "CORS enabled")
+    :headers {"Content-Type" "application/json"
+              "Access-Control-Allow-Origin" (str (get-in request [:headers "origin"]))
+              "Access-Control-Allow-Methods" "PUT, DELETE, POST, GET, OPTIONS, XMODIFY" 
+              "Access-Control-Max-Age" "2520"
+              "Access-Control-Allow-Credentials" "true"
+              "Access-Control-Allow-Headers" "Authorization, X-Requested-With, Content-Type, Origin, Accept"}))
+
 
 
 (defn example []
@@ -98,7 +111,9 @@
   (POST "/v0.1/:name-of-collection/:document-id" [] list-resource)
   (PUT "/v0.1/:name-of-collection" [] entry-resource)
   (PUT "/v0.1/:name-of-collection/:document-id" [] entry-resource)
-  (DELETE "/v0.1/:name-of-collection/:document-id" [] entry-resource)  
+  (DELETE "/v0.1/:name-of-collection/:document-id" [] entry-resource)
+  (OPTIONS "/v0.1/:name-of-collection" [request] (preflight request))
+  (OPTIONS "/v0.1/:name-of-collection/:document-id" [request] (preflight request))
   (route/resources "/")
   (route/not-found "Page not found. Check the http verb that you used (GET, POST, PUT, DELETE) and make sure you put a collection name in the URL, and possbly also a document ID."))
 
