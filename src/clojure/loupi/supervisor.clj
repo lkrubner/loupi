@@ -12,7 +12,7 @@
 
 (defmacro start-perpetual-events []
   `(do ~@(for [i (map first (ns-publics 'loupi.perpetual))]
-           `(.start (Thread. ~(symbol (str "perpetual/" i)))))))
+           `(~(symbol (str "perpetual/" i))))))
 
 (defmacro start-startup-events []
   `(do ~@(for [i (map first (ns-publics 'loupi.startup))]
