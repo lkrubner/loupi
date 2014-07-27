@@ -10,11 +10,11 @@
    [me.raynes.fs :as fs]
    [net.cgrand.enlive-html :as enlive]
    [liberator.core :refer [resource defresource]]
+   [ring.util.response :as ring-res]
    [clojure.pprint :as pp]
    [clojure.string :as st])
   (:use
    [clojure.java.io :only [as-file input-stream output-stream] :as io]
-   [ring.util.response]
    [ring.middleware.params]
    [ring.middleware.keyword-params]
    [ring.middleware.multipart-params]
@@ -28,20 +28,6 @@
    [ring.middleware.not-modified]
    [ring.adapter.jetty :only [run-jetty]]
    [ring.middleware.json]))
-
-
-(defn preflight [request]
-  "2014-07-13 - this is meant to enable CORS so our frontenders can do cross-browser requests. The browser should do a 'preflight' OPTIONS request to get permission to do other requests."
-  (print " IN PREFLIGHT ")
-  (pp/pprint request)
-  (assoc
-      (ring.util.response/response "CORS enabled")
-    :headers {"Content-Type" "application/json"
-              "Access-Control-Allow-Origin" (str (get-in request [:headers "origin"]))
-              "Access-Control-Allow-Methods" "PUT, DELETE, POST, GET, OPTIONS, XMODIFY" 
-              "Access-Control-Max-Age" "2520"
-              "Access-Control-Allow-Credentials" "true"
-              "Access-Control-Allow-Headers" "Authorization, X-Requested-With, Content-Type, Origin, Accept"}))
 
 
 
@@ -61,7 +47,6 @@
                 (:server-port request)
                 (:uri request)
                 (str id))))
-
 
 ;; For PUT and POST check if the content type is json.
 (defn check-content-type [ctx content-types-we-allow]
@@ -99,6 +84,44 @@
   :put! (fn [ctx] (controller/entry-resource-put! ctx))
   :new? (fn [ctx] (nil? nil)))
 
+
+
+
+(defn preflight [request]
+  "2014-07-13 - this is meant to enable CORS so our frontenders can do cross-browser requests. The browser should do a 'preflight' OPTIONS request to get permission to do other requests."
+  (println " IN PREFLIGHT ")
+  (pp/pprint request)
+  (let [origin (get-in request [:headers "origin"])
+        origin (if (or (= origin "null") (nil? origin))
+                   "*"
+                   origin)]
+    (println " in preflight the origin is: " (str origin))
+    (assoc
+        (ring.util.response/response "CORS enabled")
+      :headers {"Content-Type" "application/json"
+                "Access-Control-Allow-Origin" (str origin)
+                "Access-Control-Allow-Methods" "PUT, DELETE, POST, GET, OPTIONS, XMODIFY" 
+                "Access-Control-Max-Age" "4440"
+                "Access-Control-Allow-Credentials" "true"
+                "Access-Control-Allow-Headers" "Authorization, X-Requested-With, Content-Type, Origin, Accept"})))
+
+(defn wrap-cors-headers
+  "Adding CORS headers to all responses"
+  [handler & [opts]]
+  (fn [request]
+    (if-let [resp (handler request)]
+      (let [origin (get-in request [:headers "origin"])
+        origin (if (or (= origin "null") (nil? origin))
+                   "*"
+                   origin)
+            resp (ring-res/header resp "Content-Type" "application/json")
+            resp (ring-res/header resp "Access-Control-Allow-Origin" (str origin))
+            resp (ring-res/header resp "Access-Control-Allow-Methods" "PUT, DELETE, POST, GET, OPTIONS, XMODIFY")
+            resp (ring-res/header resp "Access-Control-Max-Age" "4440")
+            resp (ring-res/header resp "Access-Control-Allow-Credentials" "true")
+            resp (ring-res/header resp "Access-Control-Allow-Headers" "Authorization, X-Requested-With, Content-Type, Origin, Accept")]
+        resp))))
+
 (defroutes app-routes
   (ANY "/" [] (example))
   (ANY "/v0.1/" [] (example))
@@ -112,13 +135,14 @@
   (PUT "/v0.1/:name-of-collection" [] entry-resource)
   (PUT "/v0.1/:name-of-collection/:document-id" [] entry-resource)
   (DELETE "/v0.1/:name-of-collection/:document-id" [] entry-resource)
-  (OPTIONS "/v0.1/:name-of-collection" [request] (preflight request))
-  (OPTIONS "/v0.1/:name-of-collection/:document-id" [request] (preflight request))
+  (OPTIONS "/v0.1/:name-of-collection" request (preflight request))
+  (OPTIONS "/v0.1/:name-of-collection/:document-id" request (preflight request))
   (route/resources "/")
   (route/not-found "Page not found. Check the http verb that you used (GET, POST, PUT, DELETE) and make sure you put a collection name in the URL, and possbly also a document ID."))
 
 (def app
   (-> app-routes
+      (wrap-cors-headers)
       (wrap-session {:cookie-name "loupi-session" :cookie-attrs {:max-age 90000000}})
       (wrap-cookies)
       (wrap-keyword-params)
