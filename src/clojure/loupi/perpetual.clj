@@ -8,23 +8,26 @@
 
 
 
-(def my-pool (at/mk-pool))
-
 (defn resource-usage []
-  (at/every 311000
-            (fn []
-              (println "The time is: " (dates/current-time-as-string))
-              (doseq [x (monitor/thread-top)]
-                (pp/pprint x))
-              (println (str (monitor/show-stats-regarding-resources-used-by-this-app)))) my-pool))
+  (let [my-pool (at/mk-pool)]
+    (at/every 311000
+              (fn []
+                (println " resource usage is: ")
+                (println "The time is: " (dates/current-time-as-string))
+                (doseq [x (monitor/thread-top)]
+                  (pp/pprint x))
+                (println (str (monitor/show-stats-regarding-resources-used-by-this-app))))
+              my-pool)))
 
 (defn show-whole-memory-cache []
-  (at/every 120000
-            (fn []
-              (println "The time is: " (dates/current-time-as-string))
-              (println "We will now list everything in the memory cache:")
-              (doseq [x (remember/get-whole-memory-cache)]
-                (pp/pprint x))) my-pool))
+  (let [my-pool (at/mk-pool)]
+    (at/every 120000
+              (fn []
+                (println "The time is: " (dates/current-time-as-string))
+                (println "We will now list everything in the memory cache:")
+                (doseq [x (remember/get-whole-memory-cache)]
+                  (pp/pprint x)))
+              my-pool)))
 
 
 
