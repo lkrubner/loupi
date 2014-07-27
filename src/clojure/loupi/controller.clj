@@ -120,9 +120,11 @@
 
 (defn entry-resource-put! [ctx]
   "2014-07-08 - PUT leads us to create a new document. If the :document-id matches the :_id of an existing document, that other document needs to be removed and wholly over-written by this new document."
-  (println " in entry-resourse-put!")
-  (pp/pprint ctx)
-  (pq/create-item ctx))
+  (pq/create-item ctx)
+  {:status 0
+   :messages [{:message "Attempting to create item"}]
+   :data {:url (str "/v0.1/" (str (get-in ctx [:request :params :name-of-collection])))}
+   })
 
 (defn entry-resource-existed? [ctx]
   false)
