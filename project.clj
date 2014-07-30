@@ -30,7 +30,7 @@
   :disable-implicit-clean true
   :warn-on-reflection true
   :main loupi.core
-  :jvm-opts ["-Xms512m" "-Xmx1020m" "-XX:-UseCompressedOops"])
+  :jvm-opts ["-Xms100m" "-Xmx300m" "-XX:-UseCompressedOops"])
 
 
 
