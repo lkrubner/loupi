@@ -81,109 +81,109 @@
 
 	  <p>Tyler needed to create the following JSON object, so here is the code to PUT the object in the database: 
 
-	  <pre>
-	    $.ajax({
-            type: "PUT",
-            contentType: "application/json",
-            headers: {
-            'X-HTTP-Method-Override': 'PUT'
-            },
-            url: "http://das.launchopen.com/api/v0.1/Awards",
-	    data: 
-                  JSON.stringify({
-                             "decorateImages": [
-                                 {
-                                     "decImage": "/assets/open/images/ar/badge-theater-small.png"
-                 
-                                 },
-                                 {
-                                     "decImage": "/assets/open/images/ar/badge-music-small.png"
-                                 }
-                             ],
-                             "className": "MTH200",
-                             "studentInfo": [
-                                 {
-                                     "studentName": "Mark Student",
-                                     "earnedPoints": 1575
-                 
-                                 },
-                                 {
-                                     "studentName": "Tori Student",
-                                     "earnedPoints": 2235
-                                 },
-                                 {
-                                     "studentName": "Suzie Student",
-                                     "earnedPoints": 1250
-                                 }
-                             ]
-                         }),
-            complete: function (data) { alert("Done. Use FireFox for testing and look at the console.log to see the results.");  },
-            success: function (data) { console.log(data);  },
-            error:  function (data) { console.log(data); },
-            dataType: "json"
-            });
-	  </pre>
+	    <pre>
+	      $.ajax({
+              type: "PUT",
+              contentType: "application/json",
+              headers: {
+              'X-HTTP-Method-Override': 'PUT'
+              },
+              url: "http://das.launchopen.com/api/v0.1/Awards",
+	      data: 
+              JSON.stringify({
+              "decorateImages": [
+              {
+              "decImage": "/assets/open/images/ar/badge-theater-small.png"
+              
+              },
+              {
+              "decImage": "/assets/open/images/ar/badge-music-small.png"
+              }
+              ],
+              "className": "MTH200",
+              "studentInfo": [
+              {
+              "studentName": "Mark Student",
+              "earnedPoints": 1575
+              
+              },
+              {
+              "studentName": "Tori Student",
+              "earnedPoints": 2235
+              },
+              {
+              "studentName": "Suzie Student",
+              "earnedPoints": 1250
+              }
+              ]
+              }),
+              complete: function (data) { alert("Done. Use FireFox for testing and look at the console.log to see the results.");  },
+              success: function (data) { console.log(data);  },
+              error:  function (data) { console.log(data); },
+              dataType: "json"
+              });
+	    </pre>
 
 	  <p>When I run that, I see a 201 status "Created" in FireFox's console.log. And then when I look in MongoDB, I see this new document: 
 
 	    <pre>
-                 {
-                 	"_id" : ObjectId("53bcc363e4b07b9b2edc8bfd"),
-                 	"updated-at" : ISODate("2014-07-09T04:21:55.275Z"),
-                 	"created-at" : ISODate("2014-07-09T04:21:55.275Z"),
-                 	"decorateImages" : [
-                 		{
-                 			"decImage" : "/assets/open/images/ar/badge-theater-small.png"
-                 		},
-                 		{
-                 			"decImage" : "/assets/open/images/ar/badge-music-small.png"
-                 		}
-                 	],
-                 	"className" : "MTH200",
-                 	"studentInfo" : [
-                 		{
-                 			"studentName" : "Mark Student",
-                 			"earnedPoints" : 1575
-                 		},
-                 		{
-                 			"studentName" : "Tori Student",
-                 			"earnedPoints" : 2235
-                 		},
-                 		{
-                 			"studentName" : "Suzie Student",
-                 			"earnedPoints" : 1250
-                 		}
-                 	]
-                 }
-                 </pre>
+              {
+              "_id" : ObjectId("53bcc363e4b07b9b2edc8bfd"),
+              "updated-at" : ISODate("2014-07-09T04:21:55.275Z"),
+              "created-at" : ISODate("2014-07-09T04:21:55.275Z"),
+              "decorateImages" : [
+              {
+              "decImage" : "/assets/open/images/ar/badge-theater-small.png"
+              },
+              {
+              "decImage" : "/assets/open/images/ar/badge-music-small.png"
+              }
+              ],
+              "className" : "MTH200",
+              "studentInfo" : [
+              {
+              "studentName" : "Mark Student",
+              "earnedPoints" : 1575
+              },
+              {
+              "studentName" : "Tori Student",
+              "earnedPoints" : 2235
+              },
+              {
+              "studentName" : "Suzie Student",
+              "earnedPoints" : 1250
+              }
+              ]
+              }
+            </pre>
 
-	    <p>Now, if I want to get that document back, I do this: </p>
+	  <p>Now, if I want to get that document back, I do this: </p>
 
-	    <pre>
+	  <pre>
 	    $.ajax({
             type: "GET",
             contentType: "application/json",
             url: "http://das.launchopen.com/api/v0.1/Awards/53bcc363e4b07b9b2edc8bfd",
 	    data: "",
             complete: function (data) {
-              var rawResponse = data.responseText;
-              var cleanedData = rawResponse.replace(/\\/g, '');
-              $("#api-results").text(cleanedData);
-  	      alert("Done. Use FireFox for testing and look at the console.log to see the results.");  
+            var rawResponse = data.responseText;
+            var cleanedData = rawResponse.replace(/\\/g, '');
+            $("#api-results").text(cleanedData);
+  	    alert("Done. Use FireFox for testing and look at the console.log to see the results.");  
 	    },
             success: function (data) { console.log(data);  },
             error:  function (data) { console.log(data); },
             dataType: "json"
             });
-	    </pre>
-	    
-	    <p>Now I see the document that I just put in the database a few moments ago. However, the data is only a string, it is not a Javascript object. To convert the string to a JSON object, try:</p>
+	  </pre>
+	  
+	  <p>Now I see the document that I just put in the database a few moments ago. However, the data is only a string, it is not a Javascript object. To convert the string to a JSON object, try:</p>
 
-	    <pre>
-	      jQuery.parseJSON( jsonString );
-	    </pre>
+	  <pre>
+	    jQuery.parseJSON( jsonString );
+	  </pre>
 
-	    <p>What do we do when we want to update this data? Try this: </p>
+	  <p>What do we do when we want to update this data? Try this: </p>
 
 	  <pre>
 	    $.ajax({
@@ -194,41 +194,41 @@
             },
             url: "http://das.launchopen.com/api/v0.1/Awards/53bcc363e4b07b9b2edc8bfd",
 	    data: 
-                  JSON.stringify({
-                             "decorateImages": [
-                                 {
-                                     "decImage": "/assets/open/images/ar/badge-theater-small.png"
-                 
-                                 },
-                                 {
-                                     "decImage": "/assets/open/images/ar/badge-music-small.png"
-                                 }
-                             ],
-                             "className": "MTH200",
-                             "studentInfo": [
-                                 {
-                                     "studentName": "Mark Student",
-                                     "earnedPoints": 1575
-                 
-                                 },
-                                 {
-                                     "studentName": "Arianna Student",
-                                     "earnedPoints": 1744
-                                 },
-                                 {
-                                     "studentName": "Shorey Student",
-                                     "earnedPoints": 1115
-                                 },
-                                 {
-                                     "studentName": "Tori Student",
-                                     "earnedPoints": 2235
-                                 },
-                                 {
-                                     "studentName": "Suzie Student",
-                                     "earnedPoints": 1250
-                                 }
-                             ]
-                         }),
+            JSON.stringify({
+            "decorateImages": [
+            {
+            "decImage": "/assets/open/images/ar/badge-theater-small.png"
+            
+            },
+            {
+            "decImage": "/assets/open/images/ar/badge-music-small.png"
+            }
+            ],
+            "className": "MTH200",
+            "studentInfo": [
+            {
+            "studentName": "Mark Student",
+            "earnedPoints": 1575
+            
+            },
+            {
+            "studentName": "Arianna Student",
+            "earnedPoints": 1744
+            },
+            {
+            "studentName": "Shorey Student",
+            "earnedPoints": 1115
+            },
+            {
+            "studentName": "Tori Student",
+            "earnedPoints": 2235
+            },
+            {
+            "studentName": "Suzie Student",
+            "earnedPoints": 1250
+            }
+            ]
+            }),
             complete: function (data) { alert("Done. Use FireFox for testing and look at the console.log to see the results.");  },
             success: function (data) { console.log(data);  },
             error:  function (data) { console.log(data); },
@@ -239,42 +239,42 @@
 	  <p>Now when I look in MongoDB I see:</p>
 
 	  <pre>
-                 {
-                 	"_id" : ObjectId("53bcc363e4b07b9b2edc8bfd"),
-                 	"studentInfo" : [
-                 		{
-                 			"studentName" : "Mark Student",
-                 			"earnedPoints" : 1575
-                 		},
-                 		{
-                 			"studentName" : "Arianna Student",
-                 			"earnedPoints" : 1744
-                 		},
-                 		{
-                 			"studentName" : "Shorey Student",
-                 			"earnedPoints" : 1115
-                 		},
-                 		{
-                 			"studentName" : "Tori Student",
-                 			"earnedPoints" : 2235
-                 		},
-                 		{
-                 			"studentName" : "Suzie Student",
-                 			"earnedPoints" : 1250
-                 		}
-                 	],
-                 	"className" : "MTH200",
-                 	"decorateImages" : [
-                 		{
-                 			"decImage" : "/assets/open/images/ar/badge-theater-small.png"
-                 		},
-                 		{
-                 			"decImage" : "/assets/open/images/ar/badge-music-small.png"
-                 		}
-                 	],
-                 	"updated-at" : ISODate("2014-07-09T06:23:22.629Z"),
-                 	"created-at" : ISODate("2014-07-09T06:23:22.629Z")
-                 }
+            {
+            "_id" : ObjectId("53bcc363e4b07b9b2edc8bfd"),
+            "studentInfo" : [
+            {
+            "studentName" : "Mark Student",
+            "earnedPoints" : 1575
+            },
+            {
+            "studentName" : "Arianna Student",
+            "earnedPoints" : 1744
+            },
+            {
+            "studentName" : "Shorey Student",
+            "earnedPoints" : 1115
+            },
+            {
+            "studentName" : "Tori Student",
+            "earnedPoints" : 2235
+            },
+            {
+            "studentName" : "Suzie Student",
+            "earnedPoints" : 1250
+            }
+            ],
+            "className" : "MTH200",
+            "decorateImages" : [
+            {
+            "decImage" : "/assets/open/images/ar/badge-theater-small.png"
+            },
+            {
+            "decImage" : "/assets/open/images/ar/badge-music-small.png"
+            }
+            ],
+            "updated-at" : ISODate("2014-07-09T06:23:22.629Z"),
+            "created-at" : ISODate("2014-07-09T06:23:22.629Z")
+            }
 	  </pre>
 
 	  <p>One thing I have not emphasized is the difference between PUT and POST updates. With POST you can do partial updates of a document. Suppose, in the example above, we only wanted to change the className. We could do this:</p>
@@ -288,9 +288,9 @@
             },
             url: "http://das.launchopen.com/api/v0.1/Awards/53bcc363e4b07b9b2edc8bfd",
 	    data: 
-                  JSON.stringify({
-                             "className": "HISTORY101"
-                         }),
+            JSON.stringify({
+            "className": "HISTORY101"
+            }),
             complete: function (data) { alert("Done. Use FireFox for testing and look at the console.log to see the results.");  },
             success: function (data) { console.log(data);  },
             error:  function (data) { console.log(data); },
@@ -301,42 +301,42 @@
 	  <p>Now when I look in the database, I see the same document as before, and only the className has changed:</p>
 
 	  <pre>
-                 {
-                 	"_id" : ObjectId("53bcc363e4b07b9b2edc8bfd"),
-                 	"studentInfo" : [
-                 		{
-                 			"studentName" : "Mark Student",
-                 			"earnedPoints" : 1575
-                 		},
-                 		{
-                 			"studentName" : "Arianna Student",
-                 			"earnedPoints" : 1744
-                 		},
-                 		{
-                 			"studentName" : "Shorey Student",
-                 			"earnedPoints" : 1115
-                 		},
-                 		{
-                 			"studentName" : "Tori Student",
-                 			"earnedPoints" : 2235
-                 		},
-                 		{
-                 			"studentName" : "Suzie Student",
-                 			"earnedPoints" : 1250
-                 		}
-                 	],
-                 	"className" : "HISTORY101",
-                 	"decorateImages" : [
-                 		{
-                 			"decImage" : "/assets/open/images/ar/badge-theater-small.png"
-                 		},
-                 		{
-                 			"decImage" : "/assets/open/images/ar/badge-music-small.png"
-                 		}
-                 	],
-                 	"updated-at" : ISODate("2014-07-09T06:28:10.668Z"),
-                 	"created-at" : ISODate("2014-07-09T06:28:10.668Z")
-                 }
+            {
+            "_id" : ObjectId("53bcc363e4b07b9b2edc8bfd"),
+            "studentInfo" : [
+            {
+            "studentName" : "Mark Student",
+            "earnedPoints" : 1575
+            },
+            {
+            "studentName" : "Arianna Student",
+            "earnedPoints" : 1744
+            },
+            {
+            "studentName" : "Shorey Student",
+            "earnedPoints" : 1115
+            },
+            {
+            "studentName" : "Tori Student",
+            "earnedPoints" : 2235
+            },
+            {
+            "studentName" : "Suzie Student",
+            "earnedPoints" : 1250
+            }
+            ],
+            "className" : "HISTORY101",
+            "decorateImages" : [
+            {
+            "decImage" : "/assets/open/images/ar/badge-theater-small.png"
+            },
+            {
+            "decImage" : "/assets/open/images/ar/badge-music-small.png"
+            }
+            ],
+            "updated-at" : ISODate("2014-07-09T06:28:10.668Z"),
+            "created-at" : ISODate("2014-07-09T06:28:10.668Z")
+            }
 	  </pre>
 
 	  <p>But suppose I wanted to do a destructive update, which erased everything in the document save the part I am updating right now? For that you would use PUT (I want to emphasize that PUT can be used for creation, or for destructive updates). If we do exactly the same as before, but change the HTTP verb from POST to PUT, we get very different results:</p>
@@ -350,9 +350,9 @@
             },
             url: "http://das.launchopen.com/api/v0.1/Awards/53bcc363e4b07b9b2edc8bfd",
 	    data: 
-                  JSON.stringify({
-                             "className": "HISTORY101"
-                         }),
+            JSON.stringify({
+            "className": "HISTORY101"
+            }),
             complete: function (data) { alert("Done. Use FireFox for testing and look at the console.log to see the results.");  },
             success: function (data) { console.log(data);  },
             error:  function (data) { console.log(data); },
@@ -363,12 +363,12 @@
 	  <p>Using PUT means we have done a destructive update. Everything in the document was erased except for the 1 field we just updated. When I look in MongoDB, this is what I now see:  </p>
 
           <pre>                 
-                 {
-                 	"_id" : ObjectId("53bcc363e4b07b9b2edc8bfd"),
-                 	"updated-at" : ISODate("2014-07-09T06:53:51.534Z"),
-                 	"created-at" : ISODate("2014-07-09T06:53:51.534Z"),
-                 	"className" : "HISTORY101"
-                 }  
+            {
+            "_id" : ObjectId("53bcc363e4b07b9b2edc8bfd"),
+            "updated-at" : ISODate("2014-07-09T06:53:51.534Z"),
+            "created-at" : ISODate("2014-07-09T06:53:51.534Z"),
+            "className" : "HISTORY101"
+            }  
           </pre>
 
 	  <p>Keep in mind: POST is for partial updates, and PUT is for destructive updates (PUT is also for creating new documents).</p>
@@ -395,93 +395,111 @@
 
 	  <p>For now, while we are in prototype, you have complete power to put whatever you want in this database, and also to delete it.</p>
 
-	  <p>If you make a simple GET request you get 10 items back by default:</p>
+	  ## Matching/Finding particular values
 
-	    <pre>
-	    $.ajax({
-            type: "GET",
-            contentType: "application/json",
-            url: "http://das.launchopen.com/api/v0.1/UserProvider",
-	    data: "",
-            complete: function (data) {
-              var rawResponse = data.responseText;
-              var cleanedData = rawResponse.replace(/\\/g, '');
-              $("#api-results").text(cleanedData);
-  	      alert("Done. Use FireFox for testing and look at the console.log to see the results.");  
-	    },
-            success: function (data) { console.log(data);  },
-            error:  function (data) { console.log(data); },
-            dataType: "json"
-            });
-	    </pre>
-	    
-	    <p>We can also match against a field, seeking a particular value. So for instance, to get all records where "gender" is "Female":</p>
+	  <p>This route allows for matching:</p>
 
-	    <pre>
+	  <p>  GET  "/:name-of-collection/match-field/:match-field/match-value/:match-value" </p>
+
+	  <p>So we can match against a field, seeking a particular value. So for instance, to get all records where "gender" is "Female":</p>
+
+	  <pre>
 	    $.ajax({
             type: "GET",
             contentType: "application/json",
             url: "http://das.launchopen.com/api/v0.1/User/match-field/gender/match-value/Female",
 	    data: "",
             complete: function (data) {
-              var rawResponse = data.responseText;
-              var cleanedData = rawResponse.replace(/\\/g, '');
-              $("#api-results").text(cleanedData);
-  	      alert("Done. Use FireFox for testing and look at the console.log to see the results.");  
+            var rawResponse = data.responseText;
+            var cleanedData = rawResponse.replace(/\\/g, '');
+            $("#api-results").text(cleanedData);
+  	    alert("Done. Use FireFox for testing and look at the console.log to see the results.");  
 	    },
             success: function (data) { console.log(data);  },
             error:  function (data) { console.log(data); },
             dataType: "json"
             });
-	    </pre>
-	    
-	    <p>This app is not meant to be a full-featured search app, for that you should query Evan's search app. But this app does let you match any field you want.</p>
+	  </pre>
 
-	    <p>We might want to sort items, say for instance by name, and we might want to paginate our way through the data. Suppor we want to skip the first 300 users, and then get the next 5 users, listing them in alphabetical order?</p>
+	  <p>This route allows even more:</p>
 
-	    <pre>
+	  <p> GET "/:name-of-collection/sort/:field-to-sort-by/:offset-by-how-many/:return-how-many/match-field/:match-field/match-value/:match-value" </p>
+
+	  <p>This allows us to sort, paginate, and match against a value. So here is  1,000 users whose "role" is "teacher", sorted by when they last logged-in: </p>
+
+	  <pre>
+
+	    $.ajax({
+            type: "GET",
+            contentType: "application/json",
+            url: "http://das.launchopen.com/api/v0.1/User/sort/logged-in-at/0/1000/match-field/role/match-value/teacher",
+	    data: "",
+            complete: function (data) {
+            var rawResponse = data.responseText;
+            var cleanedData = rawResponse.replace(/\\/g, '');
+            $("#api-results").text(cleanedData);
+  	    alert("Done. Use FireFox for testing and look at the console.log to see the results.");  
+	    },
+            success: function (data) { console.log(data);  },
+            error:  function (data) { console.log(data); },
+            dataType: "json"
+            });
+
+	  </pre>
+	  
+	  <p>This app is not meant to be a full-featured search app, for that you should query Evan's search app. But this app does let you match any field you want.</p>
+
+	  <p>We might want to sort items, say for instance by name, and we might want to paginate our way through the data. Suppor we want to skip the first 300 users, and then get the next 5 users, listing them in alphabetical order?</p>
+
+	  <pre>
 	    $.ajax({
             type: "GET",
             contentType: "application/json",
             url: "http://das.launchopen.com/api/v0.1/User/sort/last_name/300/5",
 	    data: "",
             complete: function (data) {
-              var rawResponse = data.responseText;
-              var cleanedData = rawResponse.replace(/\\/g, '');
-              $("#api-results").text(cleanedData);
-  	      alert("Done. Use FireFox for testing and look at the console.log to see the results.");  
+            var rawResponse = data.responseText;
+            var cleanedData = rawResponse.replace(/\\/g, '');
+            $("#api-results").text(cleanedData);
+  	    alert("Done. Use FireFox for testing and look at the console.log to see the results.");  
 	    },
             success: function (data) { console.log(data);  },
             error:  function (data) { console.log(data); },
             dataType: "json"
             });
-	    </pre>
-	    
-	    <p>And finally, what if we want to do something like the above (skip the first 20 users, and then get the next 10 users, listing them in alphabetical order) but only see females?</p>
+	  </pre>
+	  
+	  <p>And finally, remember that these 2 fields allow you to paginate: </p>
 
-	    <pre>
+	  <p>:offset-by-how-many/:return-how-many</p>
+
+	  <p>So, what if we want to do something like the above, and see only females, but skip the first 20 and then return the next 10 user records, listing them in alphabetical order?</p>
+
+	  <pre>
 	    $.ajax({
             type: "GET",
             contentType: "application/json",
             url: "http://das.launchopen.com/api/v0.1/User/sort/last_name/20/10/match-field/gender/match-value/Female",
 	    data: "",
             complete: function (data) {
-              var rawResponse = data.responseText;
-              var cleanedData = rawResponse.replace(/\\/g, '');
-              $("#api-results").text(cleanedData);
-  	      alert("Done. Use FireFox for testing and look at the console.log to see the results.");  
+            var rawResponse = data.responseText;
+            var cleanedData = rawResponse.replace(/\\/g, '');
+            $("#api-results").text(cleanedData);
+  	    alert("Done. Use FireFox for testing and look at the console.log to see the results.");  
 	    },
             success: function (data) { console.log(data);  },
             error:  function (data) { console.log(data); },
             dataType: "json"
             });
-	    </pre>
+	  </pre>
 
 	  <h4>Troubleshooting</h4>
 
 	  <p>If you get a 415 Unsupported Media Type response then make sure you set contentType: "application/json"</p>
 
 	  <p>If you get a 404 but the URL looks correct to you, then check the verb: GET, PUT, POST, DELETE. The routes are specific to a verb and not all routes support GET. Also, avoid trailing slashes at the end of the URL.</p>
+
+	  <p>If you get a 502 error then the loupi app has crashed and needs to be restarted.</p>
 
 	</div>
 	
