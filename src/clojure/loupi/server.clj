@@ -109,20 +109,18 @@
   "Adding CORS headers to all responses"
   [handler & [opts]]
   (fn [request]
-    (if-let [resp (handler request)]
-      (if-not (= ( :request-method request) :get)
-        (let [origin (get-in request [:headers "origin"])
-              origin (if (or (= origin "null") (nil? origin))
-                       "*"
-                       origin)
-              resp (ring-res/header resp "Content-Type" "application/json")
-              resp (ring-res/header resp "Access-Control-Allow-Origin" (str origin))
-              resp (ring-res/header resp "Access-Control-Allow-Methods" "PUT, DELETE, POST, GET, OPTIONS, XMODIFY")
-              resp (ring-res/header resp "Access-Control-Max-Age" "4440")
-              resp (ring-res/header resp "Access-Control-Allow-Credentials" "true")
-              resp (ring-res/header resp "Access-Control-Allow-Headers" "Authorization, X-Requested-With, Content-Type, Origin, Accept")]
-          resp)
-        resp))))
+    (let [resp (handler request)
+          origin (get-in request [:headers "origin"])
+          origin (if (or (= origin "null") (nil? origin))
+                   "*"
+                   origin)
+          resp (ring-res/header resp "Content-Type" "application/json")
+          resp (ring-res/header resp "Access-Control-Allow-Origin" (str origin))
+          resp (ring-res/header resp "Access-Control-Allow-Methods" "PUT, DELETE, POST, GET, OPTIONS, XMODIFY")
+          resp (ring-res/header resp "Access-Control-Max-Age" "4440")
+          resp (ring-res/header resp "Access-Control-Allow-Credentials" "true")
+          resp (ring-res/header resp "Access-Control-Allow-Headers" "Authorization, X-Requested-With, Content-Type, Origin, Accept")]
+      resp)))
 
 (defroutes app-routes
   (ANY "/" [] (example))

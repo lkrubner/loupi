@@ -116,10 +116,12 @@
   (let [ctx (assoc ctx :database-where-clause-map {})
         ctx (assoc ctx :database-query-to-call "find-this-item")
         future-data-return (paginate-results ctx)]
-    (json/write-str (prepare-for-json @future-data-return))))
+    (println " entry-resource-handle-ok has been called")
+    (json/write-str (first (prepare-for-json @future-data-return)))))
 
 (defn entry-resource-put! [ctx]
   "2014-07-08 - PUT leads us to create a new document. If the :document-id matches the :_id of an existing document, that other document needs to be removed and wholly over-written by this new document."
+  (println " has been called ")
   (pq/create-item ctx)
   {:status 0
    :messages [{:message "Attempting to create item"}]
