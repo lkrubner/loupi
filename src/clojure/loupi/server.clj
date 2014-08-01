@@ -61,7 +61,7 @@
   :available-media-types ["application/json"]
   :allowed-methods [:get :post]
   :known-content-type? #(check-content-type % ["application/json"])
-  :malformed? #(controller/parse-json % ::data)
+  :malformed? #(controller/request-malformed? % ::data)
   :post! (fn [ctx] (controller/list-resource-post! ctx))
   :post-redirect? false
   :location #(build-entry-url (get % :request) (get % ::id))
@@ -78,24 +78,18 @@
   :handle-ok (fn [ctx]
                (controller/entry-resource-handle-ok ctx))
   :delete! (fn [ctx] (controller/entry-resource-delete! ctx))
-  :malformed? #(controller/parse-json % ::data)
+  :malformed? #(controller/request-malformed? % ::data)
   :can-put-to-missing? true
   :can-post-to-missing? true
   :put! (fn [ctx] (controller/entry-resource-put! ctx))
   :new? (fn [ctx] (nil? nil)))
 
-
-
-
 (defn preflight [request]
   "2014-07-13 - this is meant to enable CORS so our frontenders can do cross-browser requests. The browser should do a 'preflight' OPTIONS request to get permission to do other requests."
-  (println " IN PREFLIGHT ")
-  (pp/pprint request)
   (let [origin (get-in request [:headers "origin"])
         origin (if (or (= origin "null") (nil? origin))
                    "*"
                    origin)]
-    (println " in preflight the origin is: " (str origin))
     (assoc
         (ring.util.response/response "CORS enabled")
       :headers {"Content-Type" "application/json"
@@ -120,6 +114,7 @@
           resp (ring-res/header resp "Access-Control-Max-Age" "4440")
           resp (ring-res/header resp "Access-Control-Allow-Credentials" "true")
           resp (ring-res/header resp "Access-Control-Allow-Headers" "Authorization, X-Requested-With, Content-Type, Origin, Accept")]
+      (println " in wrap-cors-headers, the origin is: " origin)
       resp)))
 
 (defroutes app-routes
@@ -143,7 +138,6 @@
 (def app
   (-> app-routes
       (wrap-cors-headers)
-      (wrap-session {:cookie-name "loupi-session" :cookie-attrs {:max-age 90000000}})
       (wrap-cookies)
       (wrap-keyword-params)
       (wrap-multipart-params)

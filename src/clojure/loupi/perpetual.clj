@@ -10,7 +10,7 @@
 
 (defn resource-usage []
   (let [my-pool (at/mk-pool)]
-    (at/every 311000
+    (at/every 3110000
               (fn []
                 (println " resource usage is: ")
                 (println "The time is: " (dates/current-time-as-string))
@@ -21,7 +21,7 @@
 
 (defn show-whole-memory-cache []
   (let [my-pool (at/mk-pool)]
-    (at/every 120000
+    (at/every 1200000
               (fn []
                 (println "The time is: " (dates/current-time-as-string))
                 (println "We will now list everything in the memory cache:")

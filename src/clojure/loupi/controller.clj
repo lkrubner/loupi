@@ -23,14 +23,6 @@
         some-keyword (st/replace (str some-keyword) #"-" " ")]
     some-keyword))
 
-;; For PUT and POST parse the body as json and store in the context
-;; under the given key.
-(defn body-as-string [ctx]
-  (if-let [body (get-in ctx [:request :body])]
-    (condp instance? body
-      java.lang.String body
-      (slurp (io/reader body)))))
-
 (defn remove-final-comma [string-with-comma-at-end]
   (subs string-with-comma-at-end 0 (- (count string-with-comma-at-end) 1)))
 
@@ -49,19 +41,16 @@
    []
    lazyseq-from-database))
 
-
-(defn parse-json [context key] false)
-
-;; (defn parse-json [context key]
-;;   (when (#{:put :post} (get-in context [:request :request-method]))
-;;     (try
-;;       (if-let [body (body-as-string context)]
-;;         (let [data (json/read-str body)]
-;;           [false {key data}])
-;;         {:message "No body"})
-;;       (catch Exception e
-;;         (.printStackTrace e)
-;;         {:message (format "IOException: %s" (.getMessage e))}))))
+(defn request-malformed? [context key] 
+  (when (#{:put :post} (get-in context [:request :request-method]))
+    (try
+      (if-let [body (get-in context [:request :json-params])]
+        (if (or nil (= body {}))
+          {:status 1 :messages [{:type "error" :message "Error: the body of your request was empty"}]}
+          [false {key body}]))
+      (catch Exception e
+        (.printStackTrace e)
+        {:message (str "Error: please re-check the document that you sent. " (format "IOException: %s" (.getMessage e)))}))))
 
 (defn paginate-results [ctx]
   {:pre [(map? ctx)]
@@ -121,7 +110,7 @@
 
 (defn entry-resource-put! [ctx]
   "2014-07-08 - PUT leads us to create a new document. If the :document-id matches the :_id of an existing document, that other document needs to be removed and wholly over-written by this new document."
-  (println " has been called ")
+  (println " entry-resource-put! has been called ")
   (pq/create-item ctx)
   {:status 0
    :messages [{:message "Attempting to create item"}]
