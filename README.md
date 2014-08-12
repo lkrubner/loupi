@@ -255,11 +255,21 @@ I am a big believer in "design by contract" so the important functions have both
     (limit (Integer/parseInt (get-in ctx [:request :return-how-many]))
     (skip (Integer/parseInt (get-in ctx [:request :offset-by-how-many]))))))
 
+## The schema
+
+Most collections are generated based on the name of a school. These are highly denormalized datasets that are meant to make calls convenient for those working on the frontend. You can see a list of all resources here:
+
+http://das.launchopen.com/api/v0.1/resources
+
+## Runtime optimizations
+
+As said above, we use :pre and :post assertions during development, which partly take the place of unit tests, and partly act as documentation for future developers. However, they slow down the app, and they should be removed when we go to production. *assert* must be set to false, to let the compiler know it should strip out all of the assertions. We want this in the project.clj when we got to production: 
+
+:global-vars {*warn-on-reflection* false
+                *assert* false}
 
 
 
-## License
+## Daemonization
 
-Copyright LaunchOpen.com © 2014
-
-
+This app is set to run automatically by the script at /etc/init.d/launchopen_loupi
