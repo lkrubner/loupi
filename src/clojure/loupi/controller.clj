@@ -20,6 +20,14 @@
        %))
    next-item))
 
+(defn walk-deep-structure-for-values [next-item function-to-transform-values]
+  (walk/postwalk
+   (fn [%]
+     (if (and (vector? %) (= (count %) 2) (keyword? (first %)))
+       [(first %) (function-to-transform-values %)]
+       %))
+   next-item))
+
 (defn transform-keyword-into-string [some-keyword]
   {:pre [(= (type some-keyword) clojure.lang.Keyword)]
    :post [(string? %)]}
@@ -102,15 +110,18 @@
                                              })
         future-data-return (query/fetch context-wrapper-for-database-call)
         results (walk-deep-structure @future-data-return (fn [%] (st/replace (name (first %)) "*" "$")))]
-    (cheshire/generate-string (prepare-for-json results) {:pretty true})))
-
+        (cheshire/generate-string (prepare-for-json results) {:pretty true})))
+  
 (defn entry-resource-handle-ok [ctx]
   {:pre [(string?  (get-in ctx [:request :params :document-id]))]}
   (let [document-id (get-in ctx [:request :params :document-id])
+        document (if (map? (get-in ctx [:request :json-params]))
+                   (get-in ctx [:request :json-params])
+                   {})
         context-wrapper-for-database-call {
                                            :name-of-collection (get-in ctx [:request :params :name-of-collection])
                                            :where-clause-map  {:_id document-id}
-                                           :document (get-in ctx [:request :json-params])
+                                           :document document
                                            :query-name :find-these-items
                                            }
         future-data-return (query/fetch context-wrapper-for-database-call)
