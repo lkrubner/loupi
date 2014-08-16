@@ -141,7 +141,6 @@
 
 (defn entry-resource-post! [ctx]
   {:pre [(string? (get-in ctx [:request :params :document-id]))]}
-  (timbre/log :trace "In entry-resource-post!")
   (let [context-wrapper-for-database-call {
                                            :name-of-collection (get-in ctx [:request :params :name-of-collection])
                                            :where-clause-map {:_id (get-in ctx [:request :params :document-id])}
@@ -183,7 +182,7 @@
           context-wrapper-for-database-call {
                                              :name-of-collection (get-in ctx [:request :params :name-of-collection])
                                              :where-clause-map {:_id document-id}
-                                             :document (get-in ctx [:request :json-params])
+                                             :document {}
                                              :query-name :remove-this-item      
                                              }]
       (pq/persist-this-item context-wrapper-for-database-call))
