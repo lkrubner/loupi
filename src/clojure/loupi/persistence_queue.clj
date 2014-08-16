@@ -22,6 +22,7 @@
      (closure-with-item-inside)
      (catch Object o (ss/throw+ {:type :loupi.supervisor/problem
                                  :message "Error in persistence-queue/worker."
+                                 :closure closure-with-item-inside
                                  :data o})))
     (recur @(lamina/read-channel persistence-channel))))
 
