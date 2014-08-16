@@ -1,4 +1,4 @@
-(defproject loupi "1.1"
+(defproject loupi "1.2"
   :description "loupi is the Launch Open User Persistence Integration -- it provides endpoints to our front Javascript to enable all CRUD operations via Ajax. It also provides some minimal data conversions, for instance, Matt Scott wanted to save JSOn objects with field names such as $$hashKey, and dollar signs are reserved in MongoDB, so we convert $ to * when saving and we convert * to $ when we are fetching."
   :url "http://launchopen.com/"
   :license {:name "Copyright Launch Open 2014"
