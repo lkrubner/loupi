@@ -3,6 +3,7 @@
    [loupi.perpetual :as perpetual]
    [loupi.startup :as startup]
    [loupi.server :as server]
+   [loupi.controller :as ct]
    [loupi.dates :as dt]
    [loupi.query :as qy]
    [clojure.string :as st]
@@ -72,3 +73,7 @@ so I am adding logging."
     (timbre/log :trace "with-eager-pre-hook! #'loupi.persistence-queue/persist-this-item" context-wrapper-for-database-call)))
 
 
+(dire/with-eager-pre-hook! #'loupi.controller/entry-resource-post!
+  "An optional docstring."
+  (fn [ctx]
+    (timbre/log :trace "with-eager-pre-hook! #'loupi.controller/entry-resource-post!" ctx)))
