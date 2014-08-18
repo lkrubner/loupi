@@ -13,7 +13,7 @@
    [monger.operators :as operators]
    [monger.joda-time]
    [monger.query :refer :all]
-   [taoensso.timbre :as timbre]
+   [taoensso.timbre :as tb]
    [clojure.java.io :as io]
    [clojure.walk :as walk]
    [clojure.string :as st])
@@ -30,7 +30,7 @@
 (defn establish-database-connection []
   (ss/try+ 
    (let [credentials (read-string (slurp "/etc/launchopen_config"))]
-     (timbre/log :trace credentials)
+     (tb/log :trace credentials)
      (if (nil? credentials)
        (ss/throw+ {:type :loupi.supervisor/no-config :message "We could not find /etc/launchopen_config"})
        (let [uri (str "mongodb://" (:host credentials) "/" (:db credentials))
@@ -41,12 +41,12 @@
 
 (defn get-where-clause-map
   [context-wrapper-for-database-call]
-  (if (:_id (:where-clause-map context-wrapper-for-database-call))
-    (assoc
-        (:where-clause-map context-wrapper-for-database-call)
-      :_id
-      (ObjectId. (:_id (:where-clause-map context-wrapper-for-database-call))))
-    (:where-clause-map context-wrapper-for-database-call)))
+  (let [where-clause-map (:where-clause-map context-wrapper-for-database-call)
+        document-id (str (:_id where-clause-map))
+        where-clause-map (if-not (st/blank? (str document-id))
+                           (assoc where-clause-map :_id (ObjectId. (str  document-id)))
+                           where-clause-map)]
+    where-clause-map))
 
 (defn walk-deep-structure
   [next-item function-to-transform-values]
@@ -84,7 +84,7 @@
   ;;  {:type :loupi.supervisor/database-logging
   ;;   :message "This is the data used to make this database call:"
   ;;   :data [context-wrapper-for-database-call]})
-  (timbre/log :trace  "In persistence/which-query " context-wrapper-for-database-call)
+  (tb/log :trace  "In persistence/which-query " context-wrapper-for-database-call)
   (:query-name context-wrapper-for-database-call))
 
 (defmulti make-consistent
@@ -92,47 +92,50 @@
 
 (defmethod make-consistent :remove-this-item
   [context-wrapper-for-database-call]
-  (timbre/log :trace  " now we are in make-consistent :remove-this-item")
-  (mc/remove current-database
-             (:name-of-collection context-wrapper-for-database-call)
-             (get-where-clause-map context-wrapper-for-database-call)))
+  (tb/log :trace  " now we are in make-consistent :remove-this-item")
+  (let [where-clause-map (get-where-clause-map context-wrapper-for-database-call)]
+  (if (:_id where-clause-map)
+    (mc/remove current-database
+               (:name-of-collection context-wrapper-for-database-call) where-clause-map)
+    (tb/log :trace "ERROR: in make-consistent :remove-this-item, we unable to find the where-clause-map " context-wrapper-for-database-call))))
 
 (defmethod make-consistent :create-this-item
   [context-wrapper-for-database-call]
   "2014-07-08 - if this app is called via a PUT then a new item should be created. If a document id is present, we want to overwrite the old document, so we delete it and create a new item."
-  (timbre/log :trace  " now we are in make-consistent :create-this-item")
+  (tb/log :trace  " now we are in make-consistent :create-this-item")
   (let [item (:document context-wrapper-for-database-call)
         item (walk-deep-structure item (fn [%] (keyword (st/replace (first %) #"\$" "*"))))
         item (assoc item :created-at (tyme/current-time-as-datetime))
         item (assoc item :updated-at (tyme/current-time-as-datetime))
-        document-id (:_id item)]
+        where-clause-map (get-where-clause-map context-wrapper-for-database-call)
+        document-id (:_id where-clause-map)]
     (try 
       (if document-id
-        (do 
-          (make-consistent (assoc context-wrapper-for-database-call :query-name :remove-this-item))
-          (mc/insert current-database
-                     (:name-of-collection context-wrapper-for-database-call)
-                     (assoc item :_id (ObjectId. document-id))))
+        (mc/update current-database
+                   (:name-of-collection context-wrapper-for-database-call)
+                   where-clause-map
+                   (assoc item :_id (ObjectId. (str document-id))))
         (mc/insert current-database
                    (:name-of-collection context-wrapper-for-database-call)
                    (assoc item :_id (ObjectId.))))
-      (catch Exception e (timbre/log :trace e)))))
+      (catch Exception e (tb/log :trace e)))))
 
 (defmethod make-consistent :persist-this-item
   [context-wrapper-for-database-call]
   "2014-07-08 - this function is called when the app receives a POST request. If there is a document-id, the new
    document should be merged with the old document. If the client code calling this app wants to over-write an
    existing document, they call with PUT instead of POST."
-  (timbre/log :trace  " now we are in make-consistent :persist-this-item")
+  (tb/log :trace  " now we are in make-consistent :persist-this-item")
   (let [item (:document context-wrapper-for-database-call)
+        where-clause-map (get-where-clause-map context-wrapper-for-database-call)
         item (if (nil? (:created-at item))
                (assoc item :created-at (tyme/current-time-as-datetime))
                item)
         item (assoc item :updated-at (tyme/current-time-as-datetime))
         item (walk-deep-structure item (fn [%] (keyword (st/replace (first %) #"\$" "*"))))
-        document-id (:_id (:where-clause-map context-wrapper-for-database-call))
+        document-id (:_id where-clause-map)
         item (if document-id
-               (assoc item :_id (ObjectId. document-id))
+               (assoc item :_id (ObjectId. (str document-id)))
                (assoc item :_id (ObjectId.)))
         old-item (if document-id
                    (first (make-consistent
@@ -142,11 +145,11 @@
         item (if old-item
                (merge old-item item)
                item)]
-    (timbre/log :trace "Merger of old and new items: " item)
+    (tb/log :trace "Merger of old and new items: " item)
     (if document-id
       (mc/update current-database
                  (:name-of-collection context-wrapper-for-database-call)
-                 (get-where-clause-map context-wrapper-for-database-call)
+                 where-clause-map
                  item)
       (mc/insert current-database
                  (:name-of-collection context-wrapper-for-database-call)
@@ -154,7 +157,7 @@
 
 (defmethod make-consistent :find-these-items
   [context-wrapper-for-database-call]
-  (timbre/log :trace " now we are in :find-these-items" context-wrapper-for-database-call)
+  (tb/log :trace " now we are in make-consistent:find-these-items" context-wrapper-for-database-call)
   (if (:database-fields-to-return-vector context-wrapper-for-database-call)
     (mc/find-maps current-database
                   (:name-of-collection context-wrapper-for-database-call)
@@ -166,7 +169,7 @@
 
 (defmethod make-consistent :get-count
   [context-wrapper-for-database-call]
-  (timbre/log :trace " now we are in :get-count")
+  (tb/log :trace " now we are in :get-count")
   (mc/count current-database
             (:name-of-collection context-wrapper-for-database-call)
             (get-where-clause-map context-wrapper-for-database-call)))
@@ -180,7 +183,7 @@
          (number? (Integer/parseInt (:offset-by-how-many context-wrapper-for-database-call))) 
          (number? (Integer/parseInt (:return-how-many context-wrapper-for-database-call)))         
          ]}
-  (timbre/log :trace " now we are in :paginate-these-items")
+  (tb/log :trace " now we are in :paginate-these-items")
   (let [field-to-sort-by (keyword (:field-to-sort-by context-wrapper-for-database-call))
         offset-by-how-many (Integer/parseInt (:offset-by-how-many context-wrapper-for-database-call))
         return-how-many (Integer/parseInt ( :return-how-many context-wrapper-for-database-call))]

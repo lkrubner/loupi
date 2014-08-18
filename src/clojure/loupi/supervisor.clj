@@ -8,8 +8,8 @@
    [loupi.query :as qy]
    [clojure.string :as st]
    [clj-stacktrace.core :as stack]
-   [dire.core :as dire]
-   [taoensso.timbre :as timbre]
+   [dire.core :as di]
+   [taoensso.timbre :as tb]
    [loupi.persistence-queue :as pq]))
 
 
@@ -30,50 +30,59 @@
 (derive ::database-logging ::logging)
 
 
-(dire/with-handler! #'server/start
+(di/with-handler! #'server/start
   java.lang.Exception
   (fn [e & args]
     (println "We are in the server/start handler")
-    (timbre/log :trace  (str " server/start: The time of the error: " (dt/current-time-as-string) " " (stack/parse-exception e) " " (str e) " " (str args)))))
+    (tb/log :trace  (str " server/start: The time of the error: " (dt/current-time-as-string) " " (stack/parse-exception e) " " (str e) " " (str args)))))
 
-(dire/with-handler! #'server/start
+(di/with-handler! #'server/start
   Object
   (fn [e & args]
     (println "We are in the server/start handler")
-    (timbre/log :trace  (str " server/start: The time of the error: " (dt/current-time-as-string)  " " (str e) " " (str args)))))
+    (tb/log :trace  (str " server/start: The time of the error: " (dt/current-time-as-string)  " " (str e) " " (str args)))))
 
-(dire/with-handler! #'loupi.persistence-queue/persist-this-item
+(di/with-handler! #'loupi.persistence-queue/persist-this-item
   java.lang.Exception
   (fn [e & args]
-    (timbre/log :trace  (str " pq/persist-this-item The time of the error: " (dt/current-time-as-string) " " (stack/parse-exception e) " " (str e) " " (str args)))
+    (tb/log :trace  (str " pq/persist-this-item The time of the error: " (dt/current-time-as-string) " " (stack/parse-exception e) " " (str e) " " (str args)))
     ))
 
-(dire/with-handler! #'loupi.persistence-queue/worker
+(di/with-handler! #'loupi.persistence-queue/worker
   Object
   (fn [e & args]
-    (timbre/log :trace  (str " dire/with-handler! #'loupi.persistence-queue/worker: The time of the error: " (dt/current-time-as-string)" " (str e) " " (str args)))))
+    (tb/log :trace  (str " di/with-handler! #'loupi.persistence-queue/worker: The time of the error: " (dt/current-time-as-string)" " (str e) " " (str args)))))
 
-(dire/with-handler! #'loupi.persistence-queue/start-workers
+(di/with-handler! #'loupi.persistence-queue/start-workers
   Object
   (fn [e & args]
     (println "We are in the start-workers handler")
-    (timbre/log :trace  (str " start-worker: The time of the error: " (dt/current-time-as-string) " " (stack/parse-exception e) " " (str e) " " (str args)))))
+    (tb/log :trace  (str " start-worker: The time of the error: " (dt/current-time-as-string) " " (stack/parse-exception e) " " (str e) " " (str args)))))
 
-(dire/with-eager-pre-hook! #'loupi.persistence-queue/persist-this-item
+(di/with-eager-pre-hook! #'loupi.persistence-queue/persist-this-item
   "An optional docstring."
   (fn [context-wrapper-for-database-call]
-    (timbre/log :trace "with-eager-pre-hook! #'loupi.persistence-queue/persist-this-item" context-wrapper-for-database-call)))
+    (tb/log :trace "with-eager-pre-hook! #'loupi.persistence-queue/persist-this-item" context-wrapper-for-database-call)))
 
-(dire/with-eager-pre-hook! #'loupi.query/fetch
+(di/with-eager-pre-hook! #'loupi.query/fetch
   "I am suprised by this error:
         2014-08-11 12:45:09.370:WARN:oejs.AbstractHttpConnection:/v0.1/User/sort/username/0/100/match-field/role/match-value/parent
         java.util.concurrent.ExecutionException: java.lang.AssertionError: Assert failed: (string? (:field-to-sort-by context-wrapper-for-database-call))
 so I am adding logging."
   (fn [context-wrapper-for-database-call]
-    (timbre/log :trace "with-eager-pre-hook! #'loupi.persistence-queue/persist-this-item" context-wrapper-for-database-call)))
+    (tb/log :trace "with-eager-pre-hook! #'loupi.persistence-queue/persist-this-item" context-wrapper-for-database-call)))
 
-
-(dire/with-eager-pre-hook! #'loupi.controller/entry-resource-post!
+(di/with-eager-pre-hook! #'loupi.controller/entry-resource-post!
   "An optional docstring."
   (fn [ctx]
-    (timbre/log :trace "with-eager-pre-hook! #'loupi.controller/entry-resource-post!" ctx)))
+    (tb/log :trace "with-eager-pre-hook! #'loupi.controller/entry-resource-post!" ctx)))
+
+(di/with-eager-pre-hook! #'loupi.controller/entry-resource-put!
+  "An optional docstring."
+  (fn [ctx]
+    (tb/log :trace "with-eager-pre-hook! #'loupi.controller/entry-resource-put!" ctx)))
+
+(di/with-post-hook! #'loupi.persistence/get-where-clause-map
+  "An optional docstring."
+  (fn [result]
+    (tb/log :trace "Return value of loupi.persistence/get-where-clause-map:  " result)))

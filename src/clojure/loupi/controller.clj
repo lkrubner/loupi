@@ -8,7 +8,8 @@
    [clojure.walk :as walk]
    [clojure.java.io :as io]
    [clojure.data.json :as json]
-   [taoensso.timbre :as timbre]
+   [clojure.pprint :as pp]
+   [taoensso.timbre :as tb]
    [clojure.java.io :as io]))
 
 
@@ -125,7 +126,9 @@
                                            :query-name :find-these-items
                                            }
         future-data-return (query/fetch context-wrapper-for-database-call)
-        entry @future-data-return
+        entry (do
+                (pp/pprint future-data-return)
+                @future-data-return)
         entry (if entry 
                 (first entry)
                 {})
@@ -158,11 +161,15 @@
 
 (defn entry-resource-put! [ctx]
   "2014-07-08 - PUT leads us to create a new document. If the :document-id matches the :_id of an existing document, that other document needs to be removed and wholly over-written by this new document."
-  (let [context-wrapper-for-database-call {
+  (let [document-id (get-in ctx [:request :params :document-id])
+        where-clause-map (if-not (st/blank? document-id)
+                           {:_id document-id}
+                           {})
+        context-wrapper-for-database-call {
                                            :name-of-collection (get-in ctx [:request :params :name-of-collection])
-                                           :where-clause-map { :_id (get-in ctx [:request :params :_id]) }
+                                           :where-clause-map where-clause-map
                                            :document (get-in ctx [:request :json-params])
-                                           :query-name :create-this-item          
+                                           :query-name :create-this-item
                                            }]
   (pq/persist-this-item context-wrapper-for-database-call)
   {:status 0
@@ -177,7 +184,7 @@
   false)
 
 (defn entry-resource-delete! [ctx]
-  (if  (get-in ctx [:request :params :document-id])
+  (if-not (st/blank? (str (get-in ctx [:request :params :document-id])))
     (let [document-id (get-in ctx [:request :params :document-id])
           context-wrapper-for-database-call {
                                              :name-of-collection (get-in ctx [:request :params :name-of-collection])
@@ -186,9 +193,10 @@
                                              :query-name :remove-this-item      
                                              }]
       (pq/persist-this-item context-wrapper-for-database-call))
-    "Error: no such document exists"))
-
-
+    (do
+      (tb/log :trace "In entry-resource-delete! we did not delete because there was no document id: " (:request ctx))
+      "Could not delete anything because we did not receive a document-id")))
+  
 
 
 

@@ -14,7 +14,6 @@
          (keyword? (:query-name context-wrapper-for-database-call))
         ]
    :post [(future? %)]}
-  "2014-07-01 - first we check the cache. If we get back nil, then we call 'store', which should put a Future in the cache, and then we check the cache again."
   (future (ps/make-consistent context-wrapper-for-database-call)))
   
 
