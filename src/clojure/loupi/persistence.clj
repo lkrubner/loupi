@@ -43,8 +43,8 @@
   [context-wrapper-for-database-call]
   (let [where-clause-map (:where-clause-map context-wrapper-for-database-call)
         document-id (str (:_id where-clause-map))
-        where-clause-map (if-not (st/blank? (str document-id))
-                           (assoc where-clause-map :_id (ObjectId. (str  document-id)))
+        where-clause-map (if-not (st/blank? document-id)
+                           (assoc where-clause-map :_id (ObjectId. document-id))
                            where-clause-map)]
     where-clause-map))
 
@@ -97,7 +97,7 @@
   (if (:_id where-clause-map)
     (mc/remove current-database
                (:name-of-collection context-wrapper-for-database-call) where-clause-map)
-    (tb/log :trace "ERROR: in make-consistent :remove-this-item, we unable to find the where-clause-map " context-wrapper-for-database-call))))
+    (tb/log :trace "ERROR: in make-consistent :remove-this-item, we are unable to get the where-clause-map " context-wrapper-for-database-call))))
 
 (defmethod make-consistent :create-this-item
   [context-wrapper-for-database-call]

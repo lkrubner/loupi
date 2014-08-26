@@ -38,3 +38,5 @@
   (dotimes [_ 20]
     (println "Starting up the persist queue workers.")
     (future (worker))))
+
+
