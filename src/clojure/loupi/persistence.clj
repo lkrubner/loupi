@@ -6,14 +6,14 @@
    [loupi.dates :as tyme]
    [me.raynes.fs :as fs]
    [dire.core :as dire]
-   [slingshot.slingshot :as ss]
+   [slingshot.slingshot :as slingshot]
    [monger.core :as mg]
    [monger.collection :as mc]
    [monger.conversion :as convert]
    [monger.operators :as operators]
    [monger.joda-time]
    [monger.query :refer :all]
-   [taoensso.timbre :as tb]
+   [taoensso.timbre :as timbre]
    [clojure.java.io :as io]
    [clojure.walk :as walk]
    [clojure.string :as st])
@@ -28,15 +28,15 @@
 ;; in production, when we start using username/password for MongoDB:
 ;; uri (str "mongodb://" (:username credentials) ":" (:password credentials) "@" (:host credentials) "/" (:db credentials))
 (defn establish-database-connection []
-  (ss/try+ 
+  (slingshot/try+ 
    (let [credentials (read-string (slurp "/etc/launchopen_config"))]
-     (tb/log :trace credentials)
+     (timbre/log :trace credentials)
      (if (nil? credentials)
-       (ss/throw+ {:type :loupi.supervisor/no-config :message "We could not find /etc/launchopen_config"})
+       (slingshot/throw+ {:type :loupi.supervisor/no-config :message "We could not find /etc/launchopen_config"})
        (let [uri (str "mongodb://" (:host credentials) "/" (:db credentials))
              { :keys [conn db] } (mg/connect-via-uri uri)]
          (if (nil? db)
-           (ss/throw+ {:type :loupi.supervisor/unable-to-connect-to-database :message (str "The uri " uri " failed to connect to the database")})
+           (slingshot/throw+ {:type :loupi.supervisor/unable-to-connect-to-database :message (str "The uri " uri " failed to connect to the database")})
              (def current-database db)))))))
 
 (defn get-where-clause-map
@@ -80,11 +80,11 @@
            (vector? (:database-fields-to-return-vector context-wrapper-for-database-call))
            true)
          ]}
-  ;; (ss/throw+
+  ;; (slingshot/throw+
   ;;  {:type :loupi.supervisor/database-logging
   ;;   :message "This is the data used to make this database call:"
   ;;   :data [context-wrapper-for-database-call]})
-  (tb/log :trace  "In persistence/which-query " context-wrapper-for-database-call)
+  (timbre/log :trace  "In persistence/which-query " context-wrapper-for-database-call)
   (:query-name context-wrapper-for-database-call))
 
 (defmulti make-consistent
@@ -92,17 +92,16 @@
 
 (defmethod make-consistent :remove-this-item
   [context-wrapper-for-database-call]
-  (tb/log :trace  " now we are in make-consistent :remove-this-item")
+  (timbre/log :trace  " now we are in make-consistent :remove-this-item")
   (let [where-clause-map (get-where-clause-map context-wrapper-for-database-call)]
   (if (:_id where-clause-map)
     (mc/remove current-database
                (:name-of-collection context-wrapper-for-database-call) where-clause-map)
-    (tb/log :trace "ERROR: in make-consistent :remove-this-item, we are unable to get the where-clause-map " context-wrapper-for-database-call))))
+    (timbre/log :trace "ERROR: in make-consistent :remove-this-item, we are unable to get the where-clause-map " context-wrapper-for-database-call))))
 
 (defmethod make-consistent :create-this-item
   [context-wrapper-for-database-call]
   "2014-07-08 - if this app is called via a PUT then a new item should be created. If a document id is present, we want to overwrite the old document, so we delete it and create a new item."
-  (tb/log :trace  " now we are in make-consistent :create-this-item")
   (let [item (:document context-wrapper-for-database-call)
         item (walk-deep-structure item (fn [%] (keyword (st/replace (first %) #"\$" "*"))))
         item (assoc item :created-at (tyme/current-time-as-datetime))
@@ -118,14 +117,15 @@
         (mc/insert current-database
                    (:name-of-collection context-wrapper-for-database-call)
                    (assoc item :_id (ObjectId.))))
-      (catch Exception e (tb/log :trace e)))))
+      (catch Exception e (timbre/log :trace e)))))
 
 (defmethod make-consistent :persist-this-item
   [context-wrapper-for-database-call]
   "2014-07-08 - this function is called when the app receives a POST request. If there is a document-id, the new
    document should be merged with the old document. If the client code calling this app wants to over-write an
-   existing document, they call with PUT instead of POST."
-  (tb/log :trace  " now we are in make-consistent :persist-this-item")
+   existing document, they call with PUT instead of POST. 2014-09-23 - adding in 'dissoc item :password' because
+   we have had problems with some code, somewhere on the frontend, saving the non-encrypted password to the database
+   via loupi."
   (let [item (:document context-wrapper-for-database-call)
         where-clause-map (get-where-clause-map context-wrapper-for-database-call)
         item (if (nil? (:created-at item))
@@ -144,20 +144,21 @@
                              :query-name :find-these-items))))
         item (if old-item
                (merge old-item item)
-               item)]
-    (tb/log :trace "Merger of old and new items: " item)
+               item)
+        name-of-collection (:name-of-collection context-wrapper-for-database-call)
+        item (dissoc item :password)]
+    (timbre/log :trace "Merger of old and new items: " item)
     (if document-id
       (mc/update current-database
-                 (:name-of-collection context-wrapper-for-database-call)
+                 name-of-collection
                  where-clause-map
                  item)
       (mc/insert current-database
-                 (:name-of-collection context-wrapper-for-database-call)
+                 name-of-collection
                  item))))
 
 (defmethod make-consistent :find-these-items
   [context-wrapper-for-database-call]
-  (tb/log :trace " now we are in make-consistent:find-these-items" context-wrapper-for-database-call)
   (if (:database-fields-to-return-vector context-wrapper-for-database-call)
     (mc/find-maps current-database
                   (:name-of-collection context-wrapper-for-database-call)
@@ -169,7 +170,6 @@
 
 (defmethod make-consistent :get-count
   [context-wrapper-for-database-call]
-  (tb/log :trace " now we are in :get-count")
   (mc/count current-database
             (:name-of-collection context-wrapper-for-database-call)
             (get-where-clause-map context-wrapper-for-database-call)))
@@ -183,7 +183,6 @@
          (number? (Integer/parseInt (:offset-by-how-many context-wrapper-for-database-call))) 
          (number? (Integer/parseInt (:return-how-many context-wrapper-for-database-call)))         
          ]}
-  (tb/log :trace " now we are in :paginate-these-items")
   (let [field-to-sort-by (keyword (:field-to-sort-by context-wrapper-for-database-call))
         offset-by-how-many (Integer/parseInt (:offset-by-how-many context-wrapper-for-database-call))
         return-how-many (Integer/parseInt ( :return-how-many context-wrapper-for-database-call))]
